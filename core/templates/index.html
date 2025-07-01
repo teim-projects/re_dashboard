@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+  Index
+{% endblock title %}
+
+
+{% block sidebar %}
+  <!--  add here navbar for home page create new do not use old sidebar -->
+{% endblock sidebar %}
+  
+  
+
+{% block content %}
+  <div class="container">
+
+    <h1>Renewable <br>Energy Dashboard</h1>
+    
+    <div class="login mb-2">
+      <a href="{% url 'login' %}">
+        <button type="button">Login</button>
+      </a>
+    </div>
+    
+    <div class="contactUs ">
+      <a href="#">
+        <button type="button">Contact Us</button>
+      </a>
+    </div>
+    
+  </div>
+  
+{% endblock content %}
+  

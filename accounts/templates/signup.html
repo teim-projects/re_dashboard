@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+  Register User
+{% endblock title %}
+  
+
+{% block style_css %}
+  
+{% endblock style_css %}
+  
+
+{% block content %}
+<h2>User Registration</h2>
+    <form method="POST">
+        {% csrf_token %}
+
+        <label for="username">Username:</label><br>
+        <input type="text" name="username" id="username" required><br><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" name="password" id="password" required><br><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" name="email" id="email" required><br><br>
+
+        <label>
+            <input type="checkbox" name="is_staff">
+            Is Staff
+        </label><br>
+        <label>
+            <input type="checkbox" name="is_superuser">
+            Is Superuser
+        </label><br>
+
+        <label>
+            <input type="checkbox" name="is_active" checked>
+            Is Active
+        </label><br><br>
+
+        <label for="energy_type">Select Energy Type:</label><br>
+        <select name="energy_type" id="energy_type" required>
+            <option value="">-- Select --</option>
+            {% for value, label in energy_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <button type="submit">Register</button>
+    </form>
+
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+  {% endblock scripts %}
+
