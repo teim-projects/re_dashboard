@@ -94,12 +94,12 @@
       <h6 class="mt-2">&nbsp;Admin Panel</h6>
     </div>
     <ul class="nav flex-column mt-4 pl-3">
-      <li class="nav-item "><a class="nav-link bg-white text-dark" href="#"> <i class="fas fa-tachometer-alt"></i> Admin Area</a></li>
-      <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-upload"></i>&nbsp; Upload Files</a></li>
-      <li class="nav-item"><a class="nav-link" href="#"> <i class="fas fa-edit"></i>&nbsp; Modify Data</a></li>
-      <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-users"></i>&nbsp; Manage Users</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">
-	<i class="fas fa-address-card"></i>&nbsp; Client Info</a></li>
+      <li class="nav-item "><a class="nav-link bg-white text-dark" href="{% url 'dashboard' %}"> <i class="fas fa-tachometer-alt"></i> Admin Area</a></li>
+      <li class="nav-item"><a class="nav-link" href="{% url 'upload_files' %}"><i class="fas fa-upload"></i>&nbsp; Upload Files</a></li>
+      <li class="nav-item"><a class="nav-link" href="{% url 'modify_data' %}"> <i class="fas fa-edit"></i>&nbsp; Modify Data</a></li>
+      <li class="nav-item"><a class="nav-link" href="{% url 'manage_users' %}"><i class="fas fa-users"></i>&nbsp; Manage Users</a></li>
+      <li class="nav-item"><a class="nav-link" href="{% url 'client_info' %}">
+	    <i class="fas fa-address-card"></i>&nbsp; Client Info</a></li>
       <li class="nav-item"><a href="{% url 'logout' %}" class="btn btn-danger">
       <i class="fas fa-sign-out-alt"></i> Logout
     </a></li>
