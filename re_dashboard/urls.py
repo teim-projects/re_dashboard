@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('customer/', include('customer_dashboard.urls')),
     path('account/', include('accounts.urls')),
+    path('core/',include('core.urls'))
 ]
 
 # Only add this in development

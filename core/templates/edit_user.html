@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %} Edit User {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3>Edit User</h3>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">
+        <label>Username</label>
+        <input type="text" name="username" class="form-control" value="{{ user_obj.username }}" required>
+      </div>
+      <div class="col-md-6">
+        <label>Email</label>
+        <input type="email" name="email" class="form-control" value="{{ user_obj.email }}" required>
+      </div>
+      <div class="col-md-6">
+        <label>Energy Type</label>
+        <select name="energy_type" class="form-select" required>
+          {% for value, label in energy_choices %}
+            <option value="{{ value }}" {% if user_obj.userprofile.energy_type == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-check mt-3">
+      <input class="form-check-input" type="checkbox" name="is_active" {% if user_obj.is_active %}checked{% endif %}>
+      <label class="form-check-label">Is Active</label>
+    </div>
+    <!-- <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="is_staff" {% if user_obj.is_staff %}checked{% endif %}>
+      <label class="form-check-label">Is Staff</label>
+    </div> -->
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="is_superuser" {% if user_obj.is_superuser %}checked{% endif %}>
+      <label class="form-check-label">Is Admin</label>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">Save Changes</button>
+    <a href="{% url 'user_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+  </form>
+</div>
+{% endblock %}
