@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{%load static%}
 
 {% block title %}
   Login
@@ -14,13 +14,13 @@
     margin: 0;
     padding: 0;
     font-family: 'Poppins', sans-serif;
-    background: url('https://images.unsplash.com/photo-1516408388572-3c4bd7a86c61?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80') no-repeat center center fixed;
+    background: url("{% static 'images/loginbackground.jpg' %}") no-repeat center center;
       background-size: cover;
+      background-position: center;
     }
 
     .login-wrapper {
-      min-height: 100vh;
-      display: flex;
+       display: flex;
       justify-content: center;
       align-items: center;
     }
@@ -106,17 +106,47 @@
       vertical-align: middle;
       margin-right: 4px;
     }
+    .footer{
+  position: fixed;
+  bottom: 0%;
+}
+        .header {
+      background-color: #ffffff;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     </style>
 {% endblock style_css %}
 
 
-{% block sidebar %} 
-{% endblock sidebar %}
+  {% block sidebar %}
+   {% endblock sidebar %}
   
-
+ 
 {% block content %}
+  <div class="header">
+
+    <!-- Add this inside your base.html or header section -->
+    <div class="container-fluid   py-2">
+      <div class="d-flex justify-content-between align-items-center px-3">
+
+        <!-- Left Logo (TEIM) -->
+        <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" height="50">
+
+        <!-- Right Logo (Intelimek) -->
+        <img src="{% static 'images/crono.png' %}" alt="Intelimek Logo" height="50">
+
+      </div>
+     
+    </div>
+
+  </div>
 <div class="login-wrapper">
-  <div class="login-card">
+  <div class="login-card mt-5" data-aos="fade-down">
     <div class="login-header">
       Login Page
     </div>
@@ -138,10 +168,37 @@
     </div>
   </div>
 </div>
-
+<div class="container-fluid footer text-center  " style="position: fixed; bottom:0px;">
+    <p style="margin: 0; font-weight: 600; color: #000;">
+        © 2025. Powered by
+        <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 20px;">
+        <a href="http://www.chronoanalytics.in/" style="text-decoration: none;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; font-size: 1.1rem;">Chronoanalytics Solution</a> All Rights Reserved.
+    </p>
+    <p style="font-weight: 600; color:#000;">
+        Marketed by
+        <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 20px;">
+        <a href="http://teim.in/" style="text-decoration: none;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; font-size: 1.1rem;">TEIM</a> All Rights Reserved.
+    </p>
+</div>
 {% endblock content %}
 
 {% block scripts %}
+<!-- AOS CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+
+<!-- AOS JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
+  AOS.init();
+  AOS.refresh();
+
+</script>
 <script>
     function goBack() {
       window.history.back();

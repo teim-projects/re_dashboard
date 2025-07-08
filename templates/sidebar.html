@@ -2,10 +2,13 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Upload Dashboard</title>
+  <title></title>
+  <link rel="icon" type="image/png" href="{% static 'images/TeimLogo.png' %}">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
@@ -16,7 +19,7 @@
     }
 
     .header {
-      background-color: #d3b8b8;
+      background-color: #ffffff;
       color: white;
       padding: 10px 20px;
       display: flex;
@@ -38,12 +41,13 @@
       z-index: 999;
     }
 
-    .nav-link{
+    .nav-link {
       border: 1px solid white;
       margin-bottom: 10px;
       border-radius: 10px;
       width: 200px;
     }
+
     .sidebar.active {
       transform: translateX(0);
     }
@@ -67,12 +71,12 @@
       padding: 0 10px;
       cursor: pointer;
     }
-
-
   </style>
 </head>
+
 <body>
   <div class="header">
+    {% if user.is_authenticated %}
     <button class="btn btn-light" onclick="openSidebar()">&#9776; Menu</button>
     <!-- <h5 class="mb-0 text-dark">RE Dashboard</h5> -->
     <div class="user d-flex align-items-center justify-content-between">
@@ -81,32 +85,102 @@
         <i class="fas fa-sign-out-alt"></i> Logout
       </a>
     </div>
+    {% else %}
+
+    <!-- Add this inside your base.html or header section -->
+    <div class="container-fluid   py-2">
+      <div class="d-flex justify-content-between align-items-center px-3">
+
+        <!-- Left Logo (TEIM) -->
+        <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" height="50">
+
+        <!-- Right Logo (Intelimek) -->
+        <img src="{% static 'images/TeimLogo.png' %}" alt="Intelimek Logo" height="50">
+
+      </div>
+      {% endif %}
+    </div>
+
   </div>
 
   <!-- Sidebar -->
   <div id="sidebar" class="sidebar">
     <button class="close-btn" onclick="closeSidebar()">×</button>
-    <div class="text-center mt-5 bg-white pt-1">
-      <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo"
-     class="img-fluid"
-     style="height: 70px; width: 100px;" />
+    <center>
+    <div class="text-center mt-5 bg-white pt-1" style="border-radius: 10px; width:70%;">
+      <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" class="img-fluid"
+        style="height: 70px; width: 100px;" />
 
-      <h6 class="mt-2">&nbsp;Admin Panel</h6>
+
     </div>
+    </center>
+
     <ul class="nav flex-column mt-4 pl-3">
-      <li class="nav-item "><a class="nav-link bg-white text-dark" href="{% url 'dashboard' %}"> <i class="fas fa-tachometer-alt"></i> Admin Area</a></li>
-      <li class="nav-item"><a class="nav-link" href="{% url 'upload_files' %}"><i class="fas fa-upload"></i>&nbsp; Upload Files</a></li>
-      <li class="nav-item"><a class="nav-link" href="{% url 'modify_data' %}"> <i class="fas fa-edit"></i>&nbsp; Modify Data</a></li>
-      <li class="nav-item"><a class="nav-link" href="{% url 'register_user' %}"><i class="fas fa-users"></i>&nbsp; Manage Users</a></li>
-      <li class="nav-item"><a class="nav-link" href="{% url 'client_info' %}">
-	    <i class="fas fa-address-card"></i>&nbsp; Client Info</a></li>
-      <li class="nav-item"><a href="{% url 'logout' %}" class="btn btn-danger">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </a></li>
+      {% if request.user.is_superuser %}
+      <li class="nav-item">
+        <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
+          <i class="fas fa-tachometer-alt"></i> Admin Area
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'upload_files' %}">
+          <i class="fas fa-upload"></i>&nbsp; Upload Files
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'modify_data' %}">
+          <i class="fas fa-edit"></i>&nbsp; Modify Data
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'register_user' %}">
+          <i class="fas fa-users"></i>&nbsp; Manage Users
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'client_info' %}">
+          <i class="fas fa-address-card"></i>&nbsp; Client Info
+        </a>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
+          <i class="fas fa-tachometer-alt"></i> Customer Area
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'upload_files' %}">
+          <i class="fas fa-upload"></i>&nbsp; Interactive Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'modify_data' %}">
+          <i class="fas fa-edit"></i>&nbsp; Profile Information
+        </a>
+      </li>
+
+      </li>
+      {% endif %}
+
+      <li class="nav-item text-center" style="border-radius: 5px;" >
+        <a href="{% url 'logout' %}" class="btn btn-danger">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </li>
     </ul>
+
   </div>
 
- 
+<!-- AOS CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+
+<!-- AOS JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
+  AOS.init();
+  AOS.refresh();
+
+</script>
   <script>
     function openSidebar() {
       document.getElementById("sidebar").classList.add("active");
@@ -117,4 +191,5 @@
     }
   </script>
 </body>
+
 </html>
