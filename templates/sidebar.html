@@ -107,28 +107,183 @@
     .modal-confirm h5 {
       font-weight: 600;
     }
+     :root {
+    --bg-color: #f8f9fa;
+    --text-color: #000;
+    --header-bg: #ffffff;
+    --sidebar-bg: #2c3e50;
+    --nav-hover: #1a252f;
+    --btn-color: #dc3545;
+  }
+
+  body.dark-mode {
+    --bg-color: #1e1e2f;
+    --text-color: #ffffff;
+    --header-bg: #2c2c3e;
+    --sidebar-bg: #1c1c2b;
+    --nav-hover: #34344e;
+    --btn-color: #ff4757;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .header {
+    background-color: var(--header-bg);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .sidebar {
+    background-color: var(--sidebar-bg);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .sidebar .nav-link:hover {
+    background-color: var(--nav-hover);
+  }
+
+  .btn-danger {
+    background-color: var(--btn-color);
+    border-color: var(--btn-color);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .toggle-switch {
+    position: fixed;
+    top: -5px;
+    right: 15px;
+    z-index: 1000;
+  }
+
+  .toggle-switch input {
+    height: 0;
+    width: 0;
+    visibility: hidden;
+  }
+
+  .toggle-switch label {
+    cursor: pointer;
+    width: 60px;
+    height: 30px;
+    background: #ccc;
+    display: block;
+    border-radius: 100px;
+    position: relative;
+    transition: background 0.3s ease-in-out;
+  }
+
+  .toggle-switch label::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 26px;
+    height: 26px;
+    background: white;
+    border-radius: 90px;
+    transition: 0.3s;
+  }
+
+  .toggle-switch input:checked + label {
+    background: #4c4cff;
+  }
+
+  .toggle-switch input:checked + label::after {
+    left: calc(100% - 2px);
+    transform: translateX(-100%);
+  }
+  /* Default icon hover (light mode) */
+.theme-btn i {
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.theme-btn:hover i {
+  color: #000; /* Slightly darker on hover */
+}
+
+/* Dark mode icon hover */
+body.dark-mode .theme-btn i {
+  color: #f9e79f;
+}
+/* Dark mode global text color */
+body.dark-mode {
+  background-color: #121212; /* optional: dark background */
+  color: white !important;
+}
+
+body.dark-mode p,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode span,
+body.dark-mode div,
+body.dark-mode a,
+body.dark-mode li,
+body.dark-mode label,
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode th,
+body.dark-mode td {
+  color: white !important;
+}
+
+/* Optional: input/select placeholder color in dark mode */
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: #cccccc;
+}
+
+body.dark-mode .theme-btn:hover i {
+  color: #ffe066; /* Brighter yellow on hover */
+}
+
   </style>
 </head>
 
 <body>
-  <div class="header" data-aos="fade-down">
-    {% if user.is_authenticated %}
-    <button class="btn btn-light" onclick="openSidebar()">&#9776; Menu</button>
-    <div class="user d-flex align-items-center justify-content-between">
-      <h5 class="mb-0 me-3 text-dark">Hello, {{ request.user }}</h5>
-      <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#logoutModal">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </a>
-    </div>
-    {% else %}
-    <div class="container-fluid py-2">
-      <div class="d-flex justify-content-between align-items-center px-3">
-        <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" height="50">
-        <img src="{% static 'images/crono.png' %}" alt="Intelimek Logo" height="50">
+<div class="header d-flex justify-content-between align-items-center px-3" data-aos="fade-down">
+  
+  {% if user.is_authenticated %}
+  <div class="d-flex align-items-center">
+    <button class="btn btn-light mr-3" onclick="openSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+    <h5 class="mb-0 me-3 text-dark" >Hello, {{ request.user }}</h5>
+
+<div class="dark-mode-toggle" data-aos="zoom-in">
+  <button id="themeToggleBtn" class="btn btn-light theme-btn" title="Toggle Dark Mode">
+    <i id="themeIcon" class="fas fa-moon"></i>
+  </button>
+</div>
+
+
+  {% else %}
+  <!-- Guest view with logos -->
+  <div class="container-fluid py-2 w-100">
+    <div class="d-flex justify-content-between align-items-center px-3">
+      <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" height="50">
+      <img src="{% static 'images/crono.png' %}" alt="Intelimek Logo" height="50">
+
+      <!-- Dark Mode Toggle still shown here -->
+      <div class="toggle-switch" data-aos="zoom-in">
+        <input type="checkbox" id="themeToggle">
+        <label for="themeToggle" title="Toggle Dark Mode"></label>
       </div>
     </div>
-    {% endif %}
   </div>
+  {% endif %}
+
+</div>
+
 
   <!-- Sidebar -->
   <div id="sidebar" class="sidebar">
@@ -142,7 +297,7 @@
     <ul class="nav flex-column mt-4 pl-3">
       {% if request.user.is_superuser %}
       <li class="nav-item">
-        <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
+        <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}" style="color: black !important;;">
           <i class="fas fa-tachometer-alt"></i> Admin Area
         </a>
       </li>
@@ -226,6 +381,48 @@
       document.getElementById("sidebar").classList.remove("active");
     }
   </script>
+
+ <script>
+  AOS.init();
+
+  function openSidebar() {
+    document.getElementById("sidebar").classList.add("active");
+  }
+
+  function closeSidebar() {
+    document.getElementById("sidebar").classList.remove("active");
+  }
+
+  // Dark Mode Icon Toggle
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  const body = document.body;
+
+  function setTheme(theme) {
+    if (theme === 'dark') {
+      body.classList.add('dark-mode');
+      themeIcon.classList.remove('fa-moon');
+      themeIcon.classList.add('fa-sun');
+    } else {
+      body.classList.remove('dark-mode');
+      themeIcon.classList.remove('fa-sun');
+      themeIcon.classList.add('fa-moon');
+    }
+    localStorage.setItem('theme', theme);
+  }
+
+  themeToggleBtn.addEventListener('click', () => {
+    const isDark = body.classList.contains('dark-mode');
+    setTheme(isDark ? 'light' : 'dark');
+  });
+
+  // Load theme on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    const storedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(storedTheme);
+  });
+</script>
+
 </body>
 
 </html>
