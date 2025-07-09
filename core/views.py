@@ -33,15 +33,38 @@ def client_info(request):
  
  
  
+from django.core.paginator import Paginator
 from django.contrib.auth.models import User
-from django.shortcuts import render
 from accounts.models import UserProfile
 
 def user_list(request):
-    users = User.objects.all().select_related('userprofile')  # Efficient query
-    return render(request, 'user_list.html', {'users': users}) 
-  
-  
+    username = request.GET.get('username', '')
+    energy_type = request.GET.get('energy_type', '')
+    status = request.GET.get('status', '')
+
+    users = User.objects.all().select_related('userprofile')
+
+    if username:
+        users = users.filter(username__icontains=username) | users.filter(email__icontains=username)
+
+    if energy_type:
+        users = users.filter(userprofile__energy_type=energy_type)
+
+    if status:
+        users = users.filter(is_active=(status == 'active'))
+
+    paginator = Paginator(users, 10)  # 10 users per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'user_list.html', {
+        'users': page_obj,
+        'username': username,
+        'energy_type': energy_type,
+        'status': status,
+        'page_obj': page_obj,
+    })
+
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.models import User
 from accounts.models import UserProfile

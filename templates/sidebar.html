@@ -6,12 +6,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title></title>
+  <title>Dashboard</title>
   <link rel="icon" type="image/png" href="{% static 'images/TeimLogo.png' %}">
 
+  <!-- Bootstrap 4 CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <!-- AOS CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,11 +26,14 @@
 
     .header {
       background-color: #ffffff;
-      color: white;
       padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 500;
     }
 
     .sidebar {
@@ -71,48 +80,63 @@
       padding: 0 10px;
       cursor: pointer;
     }
+
+    body::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    body::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    body::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+
+    body::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    .modal-confirm i {
+      font-size: 50px;
+      color: #f0ad4e;
+    }
+
+    .modal-confirm h5 {
+      font-weight: 600;
+    }
   </style>
 </head>
 
 <body>
-  <div class="header">
+  <div class="header" data-aos="fade-down">
     {% if user.is_authenticated %}
     <button class="btn btn-light" onclick="openSidebar()">&#9776; Menu</button>
-    <!-- <h5 class="mb-0 text-dark">RE Dashboard</h5> -->
     <div class="user d-flex align-items-center justify-content-between">
-      <h5 class="mb-0 me-3">Hello, {{ request.user }}</h5>
-      <a href="{% url 'logout' %}" class="btn btn-danger">
+      <h5 class="mb-0 me-3 text-dark">Hello, {{ request.user }}</h5>
+      <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#logoutModal">
         <i class="fas fa-sign-out-alt"></i> Logout
       </a>
     </div>
     {% else %}
-
-    <!-- Add this inside your base.html or header section -->
-    <div class="container-fluid   py-2">
+    <div class="container-fluid py-2">
       <div class="d-flex justify-content-between align-items-center px-3">
-
-        <!-- Left Logo (TEIM) -->
         <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" height="50">
-
-        <!-- Right Logo (Intelimek) -->
         <img src="{% static 'images/crono.png' %}" alt="Intelimek Logo" height="50">
-
       </div>
-      {% endif %}
     </div>
-
+    {% endif %}
   </div>
 
   <!-- Sidebar -->
   <div id="sidebar" class="sidebar">
     <button class="close-btn" onclick="closeSidebar()">×</button>
     <center>
-    <div class="text-center mt-5 bg-white pt-1" style="border-radius: 10px; width:70%;">
-      <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" class="img-fluid"
-        style="height: 70px; width: 100px;" />
-
-
-    </div>
+      <div class="text-center mt-5 bg-white pt-1" style="border-radius: 10px; width:70%;">
+        <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" class="img-fluid" style="height: 70px; width: 100px;" />
+      </div>
     </center>
 
     <ul class="nav flex-column mt-4 pl-3">
@@ -158,30 +182,42 @@
           <i class="fas fa-edit"></i>&nbsp; Profile Information
         </a>
       </li>
-
-      </li>
       {% endif %}
-
-      <li class="nav-item text-center" style="border-radius: 5px;" >
-        <a href="{% url 'logout' %}" class="btn btn-danger">
+      <li class="nav-item text-center mt-2">
+        <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#logoutModal">
           <i class="fas fa-sign-out-alt"></i> Logout
         </a>
       </li>
     </ul>
-
   </div>
 
-<!-- AOS CSS -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+  <!-- Logout Modal -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content text-center p-4 modal-confirm">
+        <div class="mb-3">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h5>Do you want to logout?</h5>
+        <div class="d-flex justify-content-center mt-4">
+          <a href="{% url 'logout' %}" class="btn btn-primary mr-2">Yes, Logout</a>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!-- AOS JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-<script>
-  AOS.init();
-  AOS.refresh();
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-</script>
+  <!-- AOS JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
+    AOS.init();
+
     function openSidebar() {
       document.getElementById("sidebar").classList.add("active");
     }

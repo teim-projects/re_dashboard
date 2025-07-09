@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{%load static%}
 {% block title %}
   Register User
 {% endblock title %}
@@ -47,9 +47,9 @@
 {% endblock style_css %}
 
 {% block content %}
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
+<div class="container ">
+  <div class="row justify-content-center" style="margin-top: 100px;">
+    <div class="col-md-8" data-aos="fade-down">
       <div class="form-wrapper">
         <div class="form-heading">Add New User</div>
 
@@ -91,18 +91,44 @@
             <label class="form-check-label" for="is_superuser">is Administrator</label>
           </div>
 
-          <div class="mt-4 d-flex gap-3">
-            <button type="submit" class="btn btn-success btn-custom">
+          <div class="mt-4 d-flex gap-3 row">
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+               <button type="submit" class="btn btn-success btn-custom w-100">
               ✔️ Save User
             </button>
-            <button type="button" class="btn btn-danger btn-custom" onclick="goBack()">
+            </div>
+            <div class="col-md-3">
+               <button type="button" class="btn btn-danger btn-custom w-100" onclick="goBack()">
               🔙 Go back
             </button>
+            </div>
+            <div class="col-md-3"></div>
+           
+           
           </div>
         </form>
       </div>
     </div>
   </div>
+</div>
+ <div class="container-fluid footer text-center  " style="position: fixed; bottom:0px;">
+    <p style="margin: 0; font-weight: 600; color: #000;">
+        © 2025. Powered by
+        <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 20px;">
+        <a href="http://www.chronoanalytics.in/" style="text-decoration: none;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; font-size: 1.1rem;">Chronoanalytics Solution</a> All Rights Reserved.
+    </p>
+    <p style="font-weight: 600; color:#000;">
+        Marketed by
+        <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 20px;">
+        <a href="http://teim.in/" style="text-decoration: none;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; font-size: 1.1rem;">TEIM</a> All Rights Reserved.
+    </p>
 </div>
 {% endblock content %}
 
