@@ -14,7 +14,7 @@
     background: url("{% static 'images/loginbackground.jpg' %}") no-repeat center center fixed;
     background-size: cover;
     backdrop-filter: blur(5px);
-    overflow: hidden;
+    overflow-X: hidden;
   }
 
   .header {
@@ -195,8 +195,30 @@
           <div class="d-flex justify-content-between">
             <button type="submit" class="btn btn-custom-green">SIGN IN</button>
             <button type="button" class="btn btn-custom-dark" onclick="goBack()">GO BACK</button>
+   
+
           </div>
+       {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center" role="alert">
+      {% if message.tags == "error" %}
+        <i class="fas fa-exclamation-circle mr-2 text-danger"></i>
+        <strong>Oops!</strong> Invalid credentials. Please try again.
+      {% elif message.tags == "success" %}
+        <i class="fas fa-check-circle mr-2 text-success"></i>
+        <strong>Welcome Back!</strong> {{ message }}
+      {% else %}
+        {{ message }}
+      {% endif %}
+    </div>
+  {% endfor %}
+{% endif %}
+
+
+     
+
         </form>
+        
       </div>
     </div>
     

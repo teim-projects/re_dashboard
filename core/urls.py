@@ -12,6 +12,5 @@ urlpatterns = [
   path('user-list/', user_list, name='user_list'),
   path('edit-user/<int:user_id>/', edit_user, name='edit_user'),
   path('delete-user/<int:user_id>/', delete_user, name='delete_user'),
-  path('accounts/',include('accounts.urls'))
-  
+  path('accounts/',include('accounts.urls')) 
 ]

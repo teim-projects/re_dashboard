@@ -1,46 +1,127 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %} Edit User {% endblock %}
 
+{% block style_css %}
+<style>
+  .form-wrapper {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-heading {
+    background: linear-gradient(to right, #7b2cbf, #9d4edd);
+    color: #fff;
+    padding: 15px 25px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    font-weight: 500;
+    margin-top: 12px;
+  }
+
+  .form-control, .form-select {
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+
+  .form-check {
+    margin-top: 10px;
+  }
+
+  .btn-custom {
+    width: 140px;
+    font-weight: 500;
+    font-size: 16px;
+  }
+</style>
+{% endblock style_css %}
+
 {% block content %}
-<div class="container mt-5">
-  <h3>Edit User</h3>
-  <form method="POST">
-    {% csrf_token %}
-    <div class="row">
-      <div class="col-md-6">
-        <label>Username</label>
-        <input type="text" name="username" class="form-control" value="{{ user_obj.username }}" required>
-      </div>
-      <div class="col-md-6">
-        <label>Email</label>
-        <input type="email" name="email" class="form-control" value="{{ user_obj.email }}" required>
-      </div>
-      <div class="col-md-6">
-        <label>Energy Type</label>
-        <select name="energy_type" class="form-select" required>
-          {% for value, label in energy_choices %}
-            <option value="{{ value }}" {% if user_obj.userprofile.energy_type == value %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
+<div class="container" style="min-height: 100vh;">
+  <div class="row justify-content-center" style="margin-top: 100px;">
+    <div class="col-md-8" data-aos="fade-down">
+      <div class="form-wrapper">
+        <div class="form-heading">Edit User</div>
 
-    <div class="form-check mt-3">
-      <input class="form-check-input" type="checkbox" name="is_active" {% if user_obj.is_active %}checked{% endif %}>
-      <label class="form-check-label">Is Active</label>
-    </div>
-    <!-- <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="is_staff" {% if user_obj.is_staff %}checked{% endif %}>
-      <label class="form-check-label">Is Staff</label>
-    </div> -->
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="is_superuser" {% if user_obj.is_superuser %}checked{% endif %}>
-      <label class="form-check-label">Is Admin</label>
-    </div>
+        <form method="POST">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" name="username" class="form-control" value="{{ user_obj.username }}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" value="{{ user_obj.email }}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="energy_type" class="form-label">Energy Type</label>
+              <select name="energy_type" class="form-select" required>
+                {% for value, label in energy_choices %}
+                  <option value="{{ value }}" {% if user_obj.userprofile.energy_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
 
-    <button type="submit" class="btn btn-success mt-3">Save Changes</button>
-    <a href="{% url 'user_list' %}" class="btn btn-secondary mt-3">Cancel</a>
-  </form>
+          <div class="form-check form-switch mt-4">
+            <input class="form-check-input" type="checkbox" name="is_active" {% if user_obj.is_active %}checked{% endif %}>
+            <label class="form-check-label">Is User Active</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="is_superuser" {% if user_obj.is_superuser %}checked{% endif %}>
+            <label class="form-check-label">Is Administrator</label>
+          </div>
+
+          <div class="mt-4 d-flex gap-3 row">
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-success btn-custom w-100">✔️ Update</button>
+            </div>
+            <div class="col-md-3">
+              <a href="{% url 'user_list' %}" class="btn btn-danger btn-custom w-100">🔙 Cancel</a>
+            </div>
+            <div class="col-md-3"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
+
+<div class="container-fluid footer text-center">
+  <p style="margin: 0; font-weight: 600; color: #000;">
+    © 2025. Powered by
+    <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 20px;">
+    <a href="http://www.chronoanalytics.in/" style="text-decoration: none;
+        background: linear-gradient(to right, #2575fc, #6a11cb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; font-size: 1.1rem;">Chronoanalytics Solution</a> All Rights Reserved.
+  </p>
+  <p style="font-weight: 600; color:#000;">
+    Marketed by
+    <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 20px;">
+    <a href="http://teim.in/" style="text-decoration: none;
+        background: linear-gradient(to right, #2575fc, #6a11cb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; font-size: 1.1rem;">TEIM</a> All Rights Reserved.
+  </p>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  function goBack() {
+    window.history.back();
+  }
+</script>
+{% endblock scripts %}
