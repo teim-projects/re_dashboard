@@ -1,173 +1,56 @@
 {% extends "base.html" %}
-
-{% block title %}
-Upload Files
-{% endblock title %}
+{%load static%}
+ 
 
 {% block style_css %}
 <style>
-  .card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
-  }
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
+ 
+}
 
-  .card:hover {
-    transform: translateY(-5px);
-  }
+.footer p,
+.footer span {
+  margin: 0;
+  font-weight: 600;
+  color: #000;
+  font-size: 14px;
+}
 
-  .card-header {
-    background-color: #f8f9fa;
-    font-weight: bold;
-    font-size: 1.1rem;
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 12px 12px 0 0;
-  }
+.footer a {
+  background: linear-gradient(to right, #2575fc, #6a11cb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1rem;
+  text-decoration: none;
+  font-weight: bold;
+}
 
-  .form-control {
-    border-radius: 8px;
-  }
-
-  .btn {
-    border-radius: 8px;
-    font-weight: 500;
-  }
-
-  .btn-success:hover {
-    background-color: #218838;
-  }
-
-  .template-btn {
-    background-color: #9b59b6;
-    color: white;
-  }
-
-  .template-btn:hover {
-    background-color: #8e44ad;
-  }
-
-  .main-content {
-    padding: 20px;
-    background-color: #f5f8fa;
-    border-radius: 12px;
-  }
-
-  h3.text-primary {
-    font-weight: 600;
-    margin-bottom: 30px;
-  }
-  .card-header{
-    background: linear-gradient(
-  90deg,
-  #ffffff,     /* Black */
-  #b77cff  /* Dark Gray */
-     /* Indigo-ish Gray */
-);
-
-  }
+.footer img {
+  height: 20px;
+  vertical-align: middle;
+  margin: 0 4px;
+}
 </style>
 {% endblock style_css %}
 
 {% block content %}
-<div class="main-content mt-5 container">
-  <h3 class="text-primary text-center">📁 Upload Files</h3>
-  <div class="row">
-
-    <!-- Upload Customer Data Card -->
-    <div class=""></div>
-    <div class="col-md-6 mb-4">
-      <div class="card">
-        <div class="card-header text-center" >Upload Customer Data</div>
-        <div class="card-body">
-          <form>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label>Select Provider</label>
-                  <select class="form-control">
-                    <option>Select Provider</option>
-                    <option>Suzlon</option>
-                    <option>Windworld</option>
-                    <option>Poinner</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label>Select Energy Type</label>
-                  <select class="form-control">
-                    <option>Select Energy Type</option>
-                    <option>Solar</option>
-                    <option>Wind</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Select User</label>
-              <select class="form-control">
-                <option>Select User</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Choose File</label>
-              <input type="file" class="form-control">
-            </div>
-
-            <center>
-              <button type="submit" class="btn btn-success text-center">Upload File</button>
-
-            </center>
-          </form>
-        </div>
-      </div>
+<div class="container-fluid footer">
+  <div class="row justify-content-center text-center">
+    <div class="col-auto">
+      <span>
+        © 2025. Powered by
+        <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo">
+        <a href="http://www.chronoanalytics.in/" target="_blank">Chronoanalytics Solution</a>
+        |
+        Marketed by
+        <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo">
+        <a href="http://teim.in/" target="_blank">TEIM</a>
+      </span>
     </div>
-
-    <!-- Upload Installation Summary Card -->
-    <div class="col-md-6 mb-4">
-      <div class="card">
-        <div class="card-header text-center" style="background-color: #1a43c1;">Upload Installation Summary</div>
-        <div class="card-body">
-          <form>
-
-
-            <div class="form-group">
-              <label>Select User</label>
-              <select class="form-control">
-                <option>Select User</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Select Energy Type</label>
-              <select class="form-control">
-                <option>Select Energy Type</option>
-                <option>Solar</option>
-                <option>Wind</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Choose File</label>
-              <input type="file" class="form-control">
-            </div>
-
-            <div class="row">
-              <div class="col-md-6">
-                <button type="submit" class="btn btn-success mr-2">Upload File</button>
-              </div>
-              <div class="col-md-6">
-                <button type="button" class="btn btn-primary">Get Excel Template</button>
-              </div>
-            </div>
-
-          </form>
-        </div>
-      </div>
-    </div>
-    <div class=""></div>
-
   </div>
 </div>
 {% endblock content %}

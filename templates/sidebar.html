@@ -311,6 +311,17 @@ body.dark-mode .theme-btn:hover i {
   display: inline-block;
 }
 
+.energy-label.active {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+.energy-label.active .check-icon {
+  display: inline-block;
+}
+
+
 
   </style>
 </head>
@@ -326,28 +337,37 @@ body.dark-mode .theme-btn:hover i {
 
     <!-- ✅ Show Hello button only if NOT superuser -->
     {% if not request.user.is_superuser %}
-    <div class="dashboard-option-header">
+<div class="dashboard-option-header">
   <div class="d-flex gap-3 flex-wrap">
 
-  <div class="energy-toggle">
-    <input type="radio" name="energy_type" id="energy_btn1" class="energy-input d-none">
-    <label for="energy_btn1" class="energy-label">
-      <i class="fas fa-bolt"></i> Solar
-      <span class="check-icon"><i class="fas fa-check"></i></span>
-    </label>
-  </div>
+    <!-- Solar -->
+    <div class="energy-toggle">
+      <input type="radio" name="energy_type" id="energy_btn1" class="energy-input d-none"
+        {% if request.path == '/solar/' %}checked{% endif %}>
+      <label for="energy_btn1"
+             class="energy-label {% if request.path == '/solar/' %}active{% endif %}"
+             onclick="window.location.href='{% url 'solar_dashboard' %}'">
+        <i class="fas fa-bolt"></i> Solar
+        <span class="check-icon"><i class="fas fa-check"></i></span>
+      </label>
+    </div>
 
-  <div class="energy-toggle">
-    <input type="radio" name="energy_type" id="energy_btn2" class="energy-input d-none">
-    <label for="energy_btn2" class="energy-label">
-      <i class="fas fa-bolt"></i> Wind
-      <span class="check-icon"><i class="fas fa-check"></i></span>
-    </label>
-  </div>
+    <!-- Wind -->
+    <div class="energy-toggle">
+      <input type="radio" name="energy_type" id="energy_btn2" class="energy-input d-none"
+        {% if request.path == '/' %}checked{% endif %}>
+      <label for="energy_btn2"
+             class="energy-label {% if request.path == '/' %}active{% endif %}"
+             onclick="window.location.href='{% url 'customer_dashboard' %}'">
+        <i class="fas fa-bolt"></i> Wind
+        <span class="check-icon"><i class="fas fa-check"></i></span>
+      </label>
+    </div>
 
+  </div>
 </div>
 
-    </div>
+
     {% endif %}
   </div>
 
@@ -389,25 +409,33 @@ body.dark-mode .theme-btn:hover i {
          <!-- ✅ Show Hello button only if NOT superuser -->
     {% if not request.user.is_superuser %}
     <div class="dashboard-option-header-mobile ml-4">
-<div class="d-flex gap-3 flex-wrap">
+  <div class="d-flex gap-3 flex-wrap">
 
-  <div class="energy-toggle">
-    <input type="radio" name="energy_type" id="energy_btn1" class="energy-input d-none">
-    <label for="energy_btn1" class="energy-label">
-      <i class="fas fa-bolt"></i> Solar
-      <span class="check-icon"><i class="fas fa-check"></i></span>
-    </label>
+    <!-- Solar -->
+    <div class="energy-toggle">
+      <input type="radio" name="energy_type" id="energy_btn1" class="energy-input d-none"
+        {% if request.path == '/solar/' %}checked{% endif %}>
+      <label for="energy_btn1"
+             class="energy-label {% if request.path == '/solar/' %}active{% endif %}"
+             onclick="window.location.href='{% url 'solar_dashboard' %}'">
+        <i class="fas fa-bolt"></i> Solar
+        <span class="check-icon"><i class="fas fa-check"></i></span>
+      </label>
+    </div>
+
+    <!-- Wind -->
+    <div class="energy-toggle">
+      <input type="radio" name="energy_type" id="energy_btn2" class="energy-input d-none"
+        {% if request.path == '/' %}checked{% endif %}>
+      <label for="energy_btn2"
+             class="energy-label {% if request.path == '/' %}active{% endif %}"
+             onclick="window.location.href='{% url 'customer_dashboard' %}'">
+        <i class="fas fa-bolt"></i> Wind
+        <span class="check-icon"><i class="fas fa-check"></i></span>
+      </label>
+    </div>
+
   </div>
-
-  <div class="energy-toggle">
-    <input type="radio" name="energy_type" id="energy_btn2" class="energy-input d-none">
-    <label for="energy_btn2" class="energy-label">
-      <i class="fas fa-bolt"></i> Wind
-      <span class="check-icon"><i class="fas fa-check"></i></span>
-    </label>
-  </div>
-
-</div>
 
 
     </div>
@@ -447,12 +475,12 @@ body.dark-mode .theme-btn:hover i {
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'upload_files' %}">
+        <a class="nav-link" href="#">
           <i class="fas fa-upload"></i>&nbsp; Interactive Dashboard
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'modify_data' %}">
+        <a class="nav-link" href="#">
           <i class="fas fa-edit"></i>&nbsp; Profile Information
         </a>
       </li>
