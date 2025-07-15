@@ -33,6 +33,7 @@
       top: 0;
       width: 100%;
       z-index: 500;
+      border-bottom: 1px solid silver;
     }
 
     .sidebar {
@@ -319,6 +320,22 @@ body.dark-mode .theme-btn:hover i {
 
 .energy-label.active .check-icon {
   display: inline-block;
+}
+.shadow-3d {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 4px 6px rgba(0, 0, 0, 0.15),
+    0 10px 20px rgba(0, 0, 0, 0.19);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+}
+
+.shadow-3d:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.18),
+    0 10px 20px rgba(0, 0, 0, 0.22),
+    0 20px 30px rgba(0, 0, 0, 0.25);
 }
 
 

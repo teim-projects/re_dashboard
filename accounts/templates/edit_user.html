@@ -85,78 +85,125 @@
 
 {% block content %}
 <div class="container" style="min-height: 100vh;">
-  <div class="row justify-content-center" style="margin-top: 100px;">
-    <div class="col-md-8" data-aos="fade-down">
-      <div class="form-wrapper">
-        <div class="form-heading">Edit User</div>
+ <div class="row justify-content-center align-items-stretch" style="margin-top: 100px; min-height: 100%;">
+  <!-- Left Column -->
+  <div class="col-md-9  mb-3 " data-aos="fade-down">
+    <div class="form-wrapper h-100 shadow-3d d-flex flex-column">
+      <div class="form-heading">Edit User</div>
 
-        <form method="POST">
-          {% csrf_token %}
-          <div class="row">
-            <!-- Username -->
-            <div class="col-md-6">
-              <label for="username" class="form-label">Username *</label>
-              <input type="text" name="username" class="form-control" value="{{ user_obj.username }}" required>
-            </div>
-
-            <!-- Email -->
-            <div class="col-md-6">
-              <label for="email" class="form-label">Email *</label>
-              <input type="email" name="email" class="form-control" value="{{ user_obj.email }}" required>
-            </div>
-
-            <!-- New Password -->
-            <div class="col-md-6 mt-3">
-              <label for="password" class="form-label">New Password (optional)</label>
-              <input type="password" name="password" class="form-control" placeholder="Enter new password">
-            </div>
-
-            <!-- Energy Type Multiselect -->
-            <div class="col-md-6 mt-3">
-              <label class="form-label">Select Energy Type *</label>
-              <div class="d-flex flex-wrap gap-3">
-                {% for energy in energy_choices %}
-                  <div class="energy-toggle">
-                    <input type="checkbox" name="energy_types" value="{{ energy.id }}"
-                           id="energy_{{ energy.id }}"
-                           class="energy-input d-none"
-                           {% if energy.id in selected_energy_ids %}checked{% endif %}>
-                    <label for="energy_{{ energy.id }}" class="energy-label">
-                      <i class="fas fa-bolt"></i> {{ energy.name }}
-                      <span class="check-icon"><i class="fas fa-check"></i></span>
-                    </label>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
+      <form method="POST" class="flex-grow-1 d-flex flex-column">
+        {% csrf_token %}
+        <div class="row">
+          <!-- Username -->
+          <div class="col-md-6">
+            <label for="username" class="form-label">Username *</label>
+            <input type="text" name="username" class="form-control" value="{{ user_obj.username }}" required>
           </div>
 
-          <!-- Status Switches -->
-          <div class="form-check form-switch mt-4">
-            <input class="form-check-input" type="checkbox" name="is_active" {% if user_obj.is_active %}checked{% endif %}>
-            <label class="form-check-label">Is User Active</label>
+          <!-- Email -->
+          <div class="col-md-6">
+            <label for="email" class="form-label">Email *</label>
+            <input type="email" name="email" class="form-control" value="{{ user_obj.email }}" required>
           </div>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" name="is_superuser" {% if user_obj.is_superuser %}checked{% endif %}>
-            <label class="form-check-label">Is Administrator</label>
+          <!-- New Password -->
+          <div class="col-md-6 mt-3">
+            <label for="password" class="form-label">New Password (optional)</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter new password">
           </div>
 
-          <!-- Buttons -->
-          <div class="mt-4 d-flex gap-3 row">
-            <div class="col-md-3"></div>
-            <div class="col-md-3">
-              <button type="submit" class="btn btn-success btn-custom w-100">✔️ Update</button>
+          <!-- Energy Type -->
+          <div class="col-md-6 mt-3">
+            <label class="form-label">Select Energy Type *</label>
+            <div class="d-flex flex-wrap gap-3">
+              {% for energy in energy_choices %}
+                <div class="energy-toggle">
+                  <input type="checkbox" name="energy_types" value="{{ energy.id }}"
+                         id="energy_{{ energy.id }}"
+                         class="energy-input d-none"
+                         {% if energy.id in selected_energy_ids %}checked{% endif %}>
+                  <label for="energy_{{ energy.id }}" class="energy-label">
+                    <i class="fas fa-bolt"></i> {{ energy.name }}
+                    <span class="check-icon"><i class="fas fa-check"></i></span>
+                  </label>
+                </div>
+              {% endfor %}
             </div>
-            <div class="col-md-3">
-              <a href="{% url 'user_list' %}" class="btn btn-danger btn-custom w-100">🔙 Cancel</a>
-            </div>
-            <div class="col-md-3"></div>
           </div>
-        </form>
-      </div>
+        </div>
+
+        <!-- Switches -->
+        <div class="form-check form-switch mt-4">
+          <input class="form-check-input" type="checkbox" name="is_active" {% if user_obj.is_active %}checked{% endif %}>
+          <label class="form-check-label">Is User Active</label>
+        </div>
+
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="is_superuser" {% if user_obj.is_superuser %}checked{% endif %}>
+          <label class="form-check-label">Is Administrator</label>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-4 d-flex gap-3 row">
+          <div class="col-md-3"></div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-success btn-custom w-100">✔️ Update</button>
+          </div>
+          <div class="col-md-3">
+            <a href="{% url 'user_list' %}" class="btn btn-danger btn-custom w-100">🔙 Cancel</a>
+          </div>
+          <div class="col-md-3"></div>
+        </div>
+      </form>
     </div>
   </div>
+
+  <!-- Right Column (User Details) -->
+
+  <div class="col-md-3 mb-3  " data-aos="fade-down">
+    <div class="card text-white h-100 shadow-3d" style="border-radius: 14px; background: linear-gradient(135deg, #4e54c8, #8f94fb); box-shadow: 0 6px 15px rgba(0,0,0,0.2);">
+      <div class="card-header bg-transparent border-0">
+        <h5 class="mb-0"><strong>User Details</strong></h5>
+      </div>
+  <div class="card-body">
+  <p><strong>Current Login</strong><br>
+    {% if current_login %}
+      {{ current_login|date:"D, d M Y" }}<br>{{ current_login|time:"H:i:s" }} IST
+    {% else %}
+      Not yet logged in
+    {% endif %}
+  </p>
+
+  <p><strong>Last Login</strong><br>
+    {% if last_login %}
+      {{ last_login|date:"D, d M Y" }}<br>{{ last_login|time:"H:i:s" }} IST
+    {% else %}
+      Not yet logged in
+    {% endif %}
+  </p>
+
+  <p><strong>Last Password Update</strong><br>
+    {% if last_password_change %}
+      {{ last_password_change|date:"D, d M Y" }}<br>{{ last_password_change|time:"H:i:s" }} IST
+    {% else %}
+      Not available
+    {% endif %}
+  </p>
+
+  <p><strong>Created On</strong><br>
+    {% if created_on %}
+      {{ created_on|date:"D, d M Y" }}<br>{{ created_on|time:"H:i:s" }} IST
+    {% else %}
+      Not available
+    {% endif %}
+  </p>
+</div>
+
+
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- Footer -->

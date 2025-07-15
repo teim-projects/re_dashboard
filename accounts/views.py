@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from .models import UserProfile  ,EnergyType
 from django.contrib.auth.decorators import login_required
 
+from django.contrib import messages
+from django.shortcuts import redirect
 
 @login_required
 def register_user(request):
@@ -16,6 +18,7 @@ def register_user(request):
         is_staff = request.POST.get("is_staff", 'off') == 'on'
         is_active = request.POST.get("is_active", 'off') == 'on'
         selected_ids = request.POST.getlist("energy_types")
+
         user = User(
             username=username,
             email=email,
@@ -25,15 +28,16 @@ def register_user(request):
         )
         user.set_password(password)
         user.save()
-        # Create profile first without energy_types
+
         profile = UserProfile.objects.create(user=user)
-        # Then set the ManyToManyField
         profile.energy_types.set(selected_ids)
-        return HttpResponse("User registered successfully!")
+
+        messages.success(request, "User registered successfully!")
+        return redirect('user_list')  # or wherever you want to show the modal
+
     else:
         energy_choices = EnergyType.objects.all()
         return render(request, 'signup.html', context={"energy_choices": energy_choices})
-
 
 def login_view(request):
     if request.method == 'POST':
@@ -57,30 +61,37 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from accounts.models import UserProfile
 
+from django.db.models import Q
+
 @login_required
 def user_list(request):
     username = request.GET.get('username', '')
     energy_type = request.GET.get('energy_type', '')
     status = request.GET.get('status', '')
-    users = User.objects.all().select_related('userprofile')
+
+    users = User.objects.all().select_related('userprofile').distinct()
+
     if username:
-        users = users.filter(username__icontains=username) | users.filter(email__icontains=username)
+        users = users.filter(Q(username__icontains=username) | Q(email__icontains=username))
 
     if energy_type:
-        users = users.filter(userprofile__energy_type=energy_type)
+        users = users.filter(userprofile__energy_types__name__iexact=energy_type)
 
-    if status:
-        users = users.filter(is_active=(status == 'active'))
+    if status == 'active':
+        users = users.filter(is_active=True)
+    elif status == 'inactive':
+        users = users.filter(is_active=False)
 
-    paginator = Paginator(users, 10)  # 10 users per page
+    paginator = Paginator(users, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     return render(request, 'user_list.html', {
         'users': page_obj,
+        'page_obj': page_obj,
         'username': username,
         'energy_type': energy_type,
         'status': status,
-        'page_obj': page_obj,
     })
 
 from django.shortcuts import get_object_or_404, redirect
