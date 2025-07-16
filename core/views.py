@@ -15,13 +15,21 @@ def dashboard(request):
         return render(request, 'customer_home.html')  # Regular user dashboard
     
 
+from django.contrib.auth.models import User
 from accounts.models import EnergyType
 
 @login_required
 def upload_files(request):
     energy_types = EnergyType.objects.all()
 
-    return render(request, 'upload_files.html', {'energy_types': energy_types})  # ✅ Fix here
+    # Show all non-superuser users (including normal and staff users)
+    staff_users = User.objects.filter(is_superuser=False)
+
+    return render(request, 'upload_files.html', {
+        'energy_types': energy_types,
+        'staff_users': staff_users,
+    })
+
 
 @login_required
 def modify_data(request):

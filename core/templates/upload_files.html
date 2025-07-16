@@ -89,7 +89,6 @@ Upload Files
                     <option>Select Provider</option>
                     <option>Suzlon</option>
                     <option>Windworld</option>
-                    <option>Poinner</option>
                   </select>
                 </div>
               </div>
@@ -107,11 +106,15 @@ Upload Files
               </div>
             </div>
             <div class="form-group">
-              <label>Select User</label>
-              <select class="form-control">
-                <option>Select User</option>
-              </select>
-            </div>
+    <label>Select User</label>
+    <select class="form-control" name="user_id">
+        <option value="">Select User</option>
+        {% for user in staff_users %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+</div>
+
 
             <div class="form-group">
               <label>Choose File</label>
@@ -135,20 +138,25 @@ Upload Files
           <form>
 
 
-            <div class="form-group">
-              <label>Select User</label>
-              <select class="form-control">
-                <option>Select User</option>
-              </select>
-            </div>
+             <div class="form-group">
+    <label>Select User</label>
+    <select class="form-control" name="user_id">
+        <option value="">Select User</option>
+        {% for user in staff_users %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+</div>
 
-            <div class="form-group">
-              <label>Select Energy Type</label>
-              <select class="form-control">
-                <option>Select Energy Type</option>
-                <option>Solar</option>
-                <option>Wind</option>
-              </select>
+               <div class="form-group">
+    <label>Select Energy Type</label>
+    <select class="form-control" name="energy_type">
+        <option value="">Select Energy Type</option>
+        {% for energy in energy_types %}
+            <option value="{{ energy.id }}">{{ energy.name }}</option>
+        {% endfor %}
+    </select>
+</div>
             </div>
             <div class="form-group">
               <label>Choose File</label>
