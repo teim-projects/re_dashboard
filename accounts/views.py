@@ -135,3 +135,35 @@ def edit_user(request, user_id):
         'energy_choices': energy_choices,
         'selected_energy_ids': selected_energy_ids
     })
+
+
+from django.shortcuts import render, redirect
+from .models import EnergyType
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def add_energy_type(request):
+    if request.method == 'POST':
+        if 'delete_id' in request.POST:
+            # Handle deletion
+            delete_id = request.POST.get('delete_id')
+            EnergyType.objects.filter(id=delete_id).delete()
+            messages.success(request, "Energy type deleted successfully!")
+            return redirect('register_user')  # 👈 redirect to register_user
+
+        # Handle add
+        name = request.POST.get('name')
+        if name:
+            name = name.strip()
+            obj, created = EnergyType.objects.get_or_create(name=name)
+            if created:
+                messages.success(request, "Energy type added successfully!")
+            else:
+                messages.warning(request, "Energy type already exists.")
+            return redirect('register_user')  # 👈 redirect to register_user
+        else:
+            messages.error(request, "Please enter a valid name.")
+
+    energy_types = EnergyType.objects.all()
+    return render(request, 'add_energy_type.html', {'energy_types': energy_types})

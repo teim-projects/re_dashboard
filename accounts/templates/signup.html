@@ -84,6 +84,22 @@ Register User
   .energy-input:checked + .energy-label .check-icon {
     display: inline-block;
   }
+   .energy-link {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: 500;
+    background-color: #f0f8ff;
+    color: #007bff;
+    border: 1px solid #007bff;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+  .energy-link:hover {
+    background: linear-gradient(to right, #007bff, #00c6ff);
+    color: white;
+    border-color: transparent;
+  }
 </style>
 {% endblock style_css %}
 
@@ -92,6 +108,7 @@ Register User
   <div class="row justify-content-center" style="margin-top: 100px;">
     <div class="col-md-8" data-aos="fade-down">
       <div class="form-wrapper shadow-3d">
+
         <div class="form-heading">Add New User</div>
 
         <form method="POST">
@@ -118,20 +135,25 @@ Register User
 
          <!-- Energy Type Multiselect -->
 <div class="col-md-6 mt-3">
-  <label class="form-label">Select Energy Type *</label>
+ <!-- Stylish Energy Type Toggle Buttons -->
+<div class="form-group">
+  <label class="form-label">Select Energy Types:</label>
   <div class="d-flex flex-wrap gap-3">
-
     {% for energy in energy_choices %}
       <div class="energy-toggle">
-        <input type="checkbox" name="energy_types" value="{{ energy.id }}" id="energy_{{ energy.id }}" class="energy-input d-none">
+        <input type="checkbox" name="energy_types" value="{{ energy.id }}"
+               id="energy_{{ energy.id }}"
+               class="energy-input d-none">
         <label for="energy_{{ energy.id }}" class="energy-label">
           <i class="fas fa-bolt"></i> {{ energy.name }}
           <span class="check-icon"><i class="fas fa-check"></i></span>
         </label>
       </div>
     {% endfor %}
-
   </div>
+</div>
+
+
 </div>
           </div>
 
