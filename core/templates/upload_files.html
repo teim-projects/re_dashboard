@@ -95,13 +95,15 @@ Upload Files
               </div>
               <div class="col-md-6">
                 <div class="form-group">
-                  <label>Select Energy Type</label>
-                  <select class="form-control">
-                    <option>Select Energy Type</option>
-                    <option>Solar</option>
-                    <option>Wind</option>
-                  </select>
-                </div>
+    <label>Select Energy Type</label>
+    <select class="form-control" name="energy_type">
+        <option value="">Select Energy Type</option>
+        {% for energy in energy_types %}
+            <option value="{{ energy.id }}">{{ energy.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
               </div>
             </div>
             <div class="form-group">

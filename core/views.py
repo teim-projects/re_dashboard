@@ -13,10 +13,15 @@ def dashboard(request):
         return render(request, 'home.html')  # Admin dashboard
     else:
         return render(request, 'customer_home.html')  # Regular user dashboard
+    
+
+from accounts.models import EnergyType
 
 @login_required
 def upload_files(request):
-    return render(request,'upload_files.html')
+    energy_types = EnergyType.objects.all()
+
+    return render(request, 'upload_files.html', {'energy_types': energy_types})  # ✅ Fix here
 
 @login_required
 def modify_data(request):
