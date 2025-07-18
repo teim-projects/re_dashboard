@@ -11,4 +11,8 @@ urlpatterns = [
 
     # ✅ New path to add Energy Type
     path('add-energy-type/', add_energy_type, name='add_energy_type'),
+    
+    
+    # ✅ Provider Master (newly added)
+    path('add-provider/', add_provider_with_structure, name='add_provider'),
 ]

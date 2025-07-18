@@ -15,3 +15,12 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username + " - " + ", ".join([et.name for et in self.energy_types.all()])
+
+from django.db import models
+
+class Provider(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

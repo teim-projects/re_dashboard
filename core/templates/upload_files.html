@@ -80,101 +80,59 @@ Upload Files
       <div class="card">
         <div class="card-header text-center" >Upload Customer Data</div>
         <div class="card-body">
-          <form>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label>Select Provider</label>
-                  <select class="form-control">
-                    <option>Select Provider</option>
-                    <option>Suzlon</option>
-                    <option>Windworld</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-    <label>Select Energy Type</label>
-    <select class="form-control" name="energy_type">
-        <option value="">Select Energy Type</option>
-        {% for energy in energy_types %}
-            <option value="{{ energy.id }}">{{ energy.name }}</option>
-        {% endfor %}
-    </select>
-</div>
+          <form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label>Select Provider</label>
+        <select class="form-control" name="provider">
+          <option value="">Select Provider</option>
+          {% for provider in providers %}
+            <option value="{{ provider.name }}">{{ provider.name|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
 
-              </div>
-            </div>
-            <div class="form-group">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label>Select Energy Type</label>
+        <select class="form-control" name="energy_type">
+          <option value="">Select Energy Type</option>
+          {% for energy in energy_types %}
+            <option value="{{ energy.id }}">{{ energy.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
     <label>Select User</label>
     <select class="form-control" name="user_id">
-        <option value="">Select User</option>
-        {% for user in staff_users %}
-            <option value="{{ user.id }}">{{ user.username }}</option>
-        {% endfor %}
+      <option value="">Select User</option>
+      {% for user in staff_users %}
+        <option value="{{ user.id }}">{{ user.username }}</option>
+      {% endfor %}
     </select>
-</div>
+  </div>
 
+  <div class="form-group">
+    <label>Choose File</label>
+    <input type="file" class="form-control" name="data_file">
+  </div>
 
-            <div class="form-group">
-              <label>Choose File</label>
-              <input type="file" class="form-control">
-            </div>
+  <center>
+    <button type="submit" class="btn btn-success">Upload File</button>
+  </center>
+</form>
 
-            <center>
-              <button type="submit" class="btn btn-success text-center">Upload File</button>
-
-            </center>
-          </form>
         </div>
       </div>
     </div>
 
-    <!-- Upload Installation Summary Card -->
-    <div class="col-md-6 mb-4">
-      <div class="card">
-        <div class="card-header text-center" style="background-color: #1a43c1;">Upload Installation Summary</div>
-        <div class="card-body">
-          <form>
-
-
-             <div class="form-group">
-    <label>Select User</label>
-    <select class="form-control" name="user_id">
-        <option value="">Select User</option>
-        {% for user in staff_users %}
-            <option value="{{ user.id }}">{{ user.username }}</option>
-        {% endfor %}
-    </select>
-</div>
-
-               <div class="form-group">
-    <label>Select Energy Type</label>
-    <select class="form-control" name="energy_type">
-        <option value="">Select Energy Type</option>
-        {% for energy in energy_types %}
-            <option value="{{ energy.id }}">{{ energy.name }}</option>
-        {% endfor %}
-    </select>
-</div>
-            </div>
-            <div class="form-group">
-              <label>Choose File</label>
-              <input type="file" class="form-control">
-            </div>
-
-            <div class="row">
-              <div class="col-md-6">
-                <button type="submit" class="btn btn-success mr-2">Upload File</button>
-              </div>
-              <div class="col-md-6">
-                <button type="button" class="btn btn-primary">Get Excel Template</button>
-              </div>
-            </div>
-
-          </form>
-        </div>
-      </div>
+   
     </div>
     <div class=""></div>
 

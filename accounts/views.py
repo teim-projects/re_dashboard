@@ -167,3 +167,103 @@ def add_energy_type(request):
 
     energy_types = EnergyType.objects.all()
     return render(request, 'add_energy_type.html', {'energy_types': energy_types})
+
+import pandas as pd
+from django.db import connection
+from .models import Provider
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+import os
+import pandas as pd
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import connection, IntegrityError
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from .models import Provider
+
+import os
+import pandas as pd
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import connection, IntegrityError
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from .models import Provider
+
+@login_required
+def add_provider_with_structure(request):
+    if request.method == 'POST':
+        # ✅ Delete request
+        if 'delete_id' in request.POST:
+            delete_id = request.POST.get('delete_id')
+            try:
+                provider = Provider.objects.get(id=delete_id)
+                table_name = f"{provider.name.lower().replace(' ', '_')}_data"
+
+                # Drop the dynamic table
+                with connection.cursor() as cursor:
+                    cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
+
+                provider.delete()
+                messages.success(request, f"Provider and table '{table_name}' deleted successfully.")
+            except Exception as e:
+                messages.error(request, f"Error while deleting provider: {str(e)}")
+            return redirect("add_provider")
+
+        # ✅ Add provider and create table
+        provider_name = request.POST.get("provider_name", "").strip()
+        structure_file = request.FILES.get("structure_file")
+
+        if not provider_name or not structure_file:
+            messages.error(request, "Provider name and file are required.")
+            return redirect("add_provider")
+
+        try:
+            provider = Provider.objects.create(name=provider_name.lower())
+        except IntegrityError:
+            messages.error(request, f"Provider '{provider_name}' already exists.")
+            return redirect("add_provider")
+
+        # Save the uploaded file temporarily
+        fs = FileSystemStorage()
+        filename = fs.save(structure_file.name, structure_file)
+        file_path = fs.path(filename)
+
+        try:
+            df = pd.read_csv(file_path) if filename.endswith(".csv") else pd.read_excel(file_path)
+
+            table_name = f"{provider_name.lower().replace(' ', '_')}_data"
+            columns = df.columns
+
+            # 🧩 Convert headers into valid SQL field names and append system columns
+            column_defs = [f"`{col.strip().replace(' ', '_').lower()}` TEXT" for col in columns]
+            column_defs.append("`energy_type` TEXT")
+            column_defs.append("`uploaded_by` TEXT")
+
+
+            create_table_sql = f"""
+            CREATE TABLE IF NOT EXISTS `{table_name}` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                {", ".join(column_defs)}
+            );
+            """
+
+            with connection.cursor() as cursor:
+                cursor.execute(create_table_sql)
+
+            messages.success(request, f"Provider '{provider_name}' and table '{table_name}' created successfully.")
+
+        except Exception as e:
+            messages.error(request, f"Error creating table: {str(e)}")
+
+        finally:
+            fs.delete(filename)
+
+        return redirect("add_provider")
+
+    # GET request: show form and provider list
+    providers = Provider.objects.all()
+    return render(request, 'add_Provider.html', {'providers': providers})

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Provider{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3 class="mb-4">🔧 Add New Provider & Upload Table Structure</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data" class="mb-5">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Provider Name</label>
+        <input type="text" name="provider_name" class="form-control" placeholder="e.g., Suzlon" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Upload Table Structure (CSV or Excel)</label>
+        <input type="file" name="structure_file" class="form-control" accept=".csv,.xlsx" required>
+        <small class="text-muted">Only header row needed. File won't be saved.</small>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-success">Create Provider Table</button>
+  </form>
+
+  <hr>
+
+  <h5>📋 Existing Providers:</h5>
+  {% if providers %}
+    <ul class="list-group mt-3">
+      {% for provider in providers %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ provider.name|title }} ({{ provider.created_at|date:"d M Y H:i" }})
+          <form method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="delete_id" value="{{ provider.id }}">
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this provider?')">Delete</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted mt-2">No providers added yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
