@@ -193,68 +193,94 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from .models import Provider
 
+from accounts.models import EnergyType  # ✅ Import EnergyType
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+import pandas as pd
+
+from .models import Provider
+from accounts.models import EnergyType
+
+
 @login_required
 def add_provider_with_structure(request):
+    energy_types = EnergyType.objects.all()
+
     if request.method == 'POST':
-        # ✅ Delete request
-        if 'delete_id' in request.POST:
+        # ✅ Delete a specific table
+        if 'delete_table_name' in request.POST:
+            table_to_delete = request.POST.get('delete_table_name')
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(f"DROP TABLE IF EXISTS `{table_to_delete}`")
+                messages.success(request, f"Table '{table_to_delete}' deleted successfully.")
+            except Exception as e:
+                messages.error(request, f"Error deleting table: {str(e)}")
+            return redirect("add_provider")
+
+        # ✅ Delete entire provider
+        elif 'delete_id' in request.POST:
             delete_id = request.POST.get('delete_id')
             try:
                 provider = Provider.objects.get(id=delete_id)
-                table_name = f"{provider.name.lower().replace(' ', '_')}_data"
+                provider_clean = provider.name.lower().replace(' ', '_')
 
-                # Drop the dynamic table
                 with connection.cursor() as cursor:
-                    cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
+                    for energy in EnergyType.objects.all():
+                        table_name = f"{provider_clean}_{energy.name.lower().replace(' ', '_')}"
+                        cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
 
                 provider.delete()
-                messages.success(request, f"Provider and table '{table_name}' deleted successfully.")
+                messages.success(request, f"Provider and all related tables deleted.")
             except Exception as e:
-                messages.error(request, f"Error while deleting provider: {str(e)}")
+                messages.error(request, f"Error deleting provider: {str(e)}")
             return redirect("add_provider")
 
-        # ✅ Add provider and create table
-        provider_name = request.POST.get("provider_name", "").strip()
+        # ✅ Add new provider + table
+        provider_name = request.POST.get("provider_name", "").strip().lower().replace(' ', '_')
+        energy_type_id = request.POST.get("energy_type")
         structure_file = request.FILES.get("structure_file")
 
-        if not provider_name or not structure_file:
-            messages.error(request, "Provider name and file are required.")
+        if not provider_name or not energy_type_id or not structure_file:
+            messages.error(request, "Provider name, energy type, and file are required.")
             return redirect("add_provider")
 
         try:
-            provider = Provider.objects.create(name=provider_name.lower())
-        except IntegrityError:
-            messages.error(request, f"Provider '{provider_name}' already exists.")
+            energy_type = EnergyType.objects.get(id=energy_type_id)
+            energy_type_name = energy_type.name.strip().lower().replace(' ', '_')
+        except EnergyType.DoesNotExist:
+            messages.error(request, "Invalid energy type selected.")
             return redirect("add_provider")
 
-        # Save the uploaded file temporarily
+        provider_obj, created = Provider.objects.get_or_create(name=provider_name)
+        table_name = f"{provider_name}_{energy_type_name}"
+
         fs = FileSystemStorage()
         filename = fs.save(structure_file.name, structure_file)
         file_path = fs.path(filename)
 
         try:
             df = pd.read_csv(file_path) if filename.endswith(".csv") else pd.read_excel(file_path)
+            df.columns = [col.strip().replace(" ", "_").lower() for col in df.columns]
 
-            table_name = f"{provider_name.lower().replace(' ', '_')}_data"
-            columns = df.columns
+            column_defs = [f"`{col}` TEXT" for col in df.columns]
+            column_defs += ["`energy_type` TEXT", "`uploaded_by` TEXT"]
 
-            # 🧩 Convert headers into valid SQL field names and append system columns
-            column_defs = [f"`{col.strip().replace(' ', '_').lower()}` TEXT" for col in columns]
-            column_defs.append("`energy_type` TEXT")
-            column_defs.append("`uploaded_by` TEXT")
-
-
-            create_table_sql = f"""
-            CREATE TABLE IF NOT EXISTS `{table_name}` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
-                {", ".join(column_defs)}
-            );
+            create_sql = f"""
+                CREATE TABLE IF NOT EXISTS `{table_name}` (
+                    `id` INT AUTO_INCREMENT PRIMARY KEY,
+                    {", ".join(column_defs)}
+                );
             """
-
             with connection.cursor() as cursor:
-                cursor.execute(create_table_sql)
+                cursor.execute(create_sql)
 
-            messages.success(request, f"Provider '{provider_name}' and table '{table_name}' created successfully.")
+            messages.success(request, f"Table '{table_name}' created for provider '{provider_name}'.")
 
         except Exception as e:
             messages.error(request, f"Error creating table: {str(e)}")
@@ -264,6 +290,23 @@ def add_provider_with_structure(request):
 
         return redirect("add_provider")
 
-    # GET request: show form and provider list
+    # ✅ GET request
     providers = Provider.objects.all()
-    return render(request, 'add_Provider.html', {'providers': providers})
+
+    # Fetch all DB tables
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW TABLES;")
+        all_tables = [row[0] for row in cursor.fetchall()]
+
+    # Map each provider to its tables
+    provider_table_map = {}
+    for provider in providers:
+        key = provider.name.strip().lower().replace(' ', '_')
+        related_tables = [t for t in all_tables if t.startswith(key + "_")]
+        provider_table_map[provider.name] = related_tables
+
+    return render(request, 'add_Provider.html', {
+        'providers': providers,
+        'energy_types': energy_types,
+        'provider_table_map': provider_table_map,
+    })

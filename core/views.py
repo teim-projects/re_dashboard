@@ -35,11 +35,32 @@ from accounts.models import EnergyType
 from django.contrib.auth.models import User
 
 
+from django.db import connection
+
+from django.db import connection
+from django.utils.text import slugify
+
 @login_required
 def upload_files(request):
     energy_types = EnergyType.objects.all()
     staff_users = User.objects.filter(is_superuser=False)
     providers = Provider.objects.all()
+
+    # ✅ Step 1: Get all actual tables from DB
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW TABLES;")
+        db_tables = [row[0] for row in cursor.fetchall()]
+
+    # ✅ Step 2: Build only expected provider-energy_type table names
+    expected_tables = []
+    for provider in providers:
+        for energy in energy_types:
+            table_name = f"{slugify(provider.name)}_{slugify(energy.name)}"
+            if table_name in db_tables:
+                expected_tables.append({
+                    'name': table_name,
+                    'label': f"{provider.name.title()} - {energy.name.title()}"
+                })
 
     if request.method == 'POST':
         provider = request.POST.get('provider', '').strip().lower().replace(' ', '_')
@@ -51,9 +72,8 @@ def upload_files(request):
             messages.error(request, "All fields are required.")
             return redirect('upload_files')
 
-        table_name = f"{provider}_data"
+        table_name = provider  # full table name like suzlon_wind
 
-        # Fetch actual names instead of IDs
         try:
             energy_type = EnergyType.objects.get(id=energy_type_id)
             energy_type_name = energy_type.name
@@ -68,37 +88,28 @@ def upload_files(request):
             messages.error(request, "Invalid user selected.")
             return redirect('upload_files')
 
-        # Save file temporarily
         fs = FileSystemStorage()
         filename = fs.save(data_file.name, data_file)
         file_path = fs.path(filename)
 
         try:
-            # Read uploaded file
             df = pd.read_csv(file_path) if filename.endswith('.csv') else pd.read_excel(file_path)
-
-            # Add readable info instead of IDs
             df['energy_type'] = energy_type_name
             df['uploaded_by'] = uploaded_by
-
-            # Clean column names (convert headers to SQL-compatible format)
             df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
 
-            # Insert into DB
             with connection.cursor() as cursor:
                 for _, row in df.iterrows():
                     columns = ', '.join(f"`{col}`" for col in df.columns)
                     placeholders = ', '.join(['%s'] * len(row))
                     values = list(row.values)
-
                     insert_sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
                     cursor.execute(insert_sql, values)
 
-            messages.success(request, f"✅ Data successfully inserted into '{table_name}'.")
+            messages.success(request, f"✅ Data inserted into '{table_name}'.")
 
         except Exception as e:
-            messages.error(request, f"❌ Failed to upload data: {str(e)}")
-
+            messages.error(request, f"❌ Failed: {str(e)}")
         finally:
             fs.delete(filename)
 
@@ -108,6 +119,7 @@ def upload_files(request):
         'energy_types': energy_types,
         'staff_users': staff_users,
         'providers': providers,
+        'expected_tables': expected_tables,  # ✅ pass only valid ones
     })
 
 

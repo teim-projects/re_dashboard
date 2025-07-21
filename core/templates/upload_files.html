@@ -84,15 +84,16 @@ Upload Files
   {% csrf_token %}
   <div class="row">
     <div class="col-md-6">
-      <div class="form-group">
-        <label>Select Provider</label>
-        <select class="form-control" name="provider">
-          <option value="">Select Provider</option>
-          {% for provider in providers %}
-            <option value="{{ provider.name }}">{{ provider.name|capfirst }}</option>
-          {% endfor %}
-        </select>
-      </div>
+     <div class="form-group">
+  <label>Select Provider (Table)</label>
+  <select class="form-control" name="provider" required>
+    <option value="">-- Select Provider Table --</option>
+    {% for table in expected_tables %}
+      <option value="{{ table.name }}">{{ table.label }}</option>
+    {% endfor %}
+  </select>
+</div>
+
     </div>
 
     <div class="col-md-6">

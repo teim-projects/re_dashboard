@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 
+{% load static %}
+{% load custom_filters %}
+
+
+
+
 {% block title %}Add Provider{% endblock %}
 
 {% block content %}
@@ -15,37 +21,80 @@
   <form method="POST" enctype="multipart/form-data" class="mb-5">
     {% csrf_token %}
     <div class="row">
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Provider Name</label>
-        <input type="text" name="provider_name" class="form-control" placeholder="e.g., Suzlon" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Upload Table Structure (CSV or Excel)</label>
-        <input type="file" name="structure_file" class="form-control" accept=".csv,.xlsx" required>
-        <small class="text-muted">Only header row needed. File won't be saved.</small>
-      </div>
-    </div>
+  <div class="col-md-4 mb-3">
+    <label class="form-label">Provider Name</label>
+    <input type="text" name="provider_name" class="form-control" placeholder="e.g., Suzlon" required>
+  </div>
+  <div class="col-md-4 mb-3">
+    <label class="form-label">Select Energy Type</label>
+    <select name="energy_type" class="form-select" required>
+      <option value="" disabled selected>-- Select --</option>
+      {% for energy in energy_types %}
+        <option value="{{ energy.id }}">{{ energy.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4 mb-3">
+    <label class="form-label">Upload Table Structure (CSV or Excel)</label>
+    <input type="file" name="structure_file" class="form-control" accept=".csv,.xlsx" required>
+    <small class="text-muted">Only header row needed. File won't be saved.</small>
+  </div>
+</div>
+
     <button type="submit" class="btn btn-success">Create Provider Table</button>
   </form>
 
   <hr>
 
-  <h5>📋 Existing Providers:</h5>
-  {% if providers %}
-    <ul class="list-group mt-3">
-      {% for provider in providers %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {{ provider.name|title }} ({{ provider.created_at|date:"d M Y H:i" }})
-          <form method="POST" style="margin: 0;">
-            {% csrf_token %}
-            <input type="hidden" name="delete_id" value="{{ provider.id }}">
-            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this provider?')">Delete</button>
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="text-muted mt-2">No providers added yet.</p>
-  {% endif %}
+ <h5>📋 Existing Providers & Their Tables:</h5>
+
+{% if providers %}
+  <div class="accordion mt-3" id="providerAccordion">
+    {% for provider in providers %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false"
+                  aria-controls="collapse{{ forloop.counter }}">
+            {{ provider.name|title }} ({{ provider.created_at|date:"d M Y H:i" }})
+          </button>
+        </h2>
+        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
+             aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#providerAccordion">
+          <div class="accordion-body">
+            <div class="mb-2 d-flex justify-content-end">
+              <form method="POST" onsubmit="return confirm('Delete this provider and all its tables?')">
+                {% csrf_token %}
+                <input type="hidden" name="delete_id" value="{{ provider.id }}">
+                <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete Provider</button>
+              </form>
+            </div>
+
+            {% if provider.name in provider_table_map %}
+              <ul class="list-group">
+                {% for table in provider_table_map|get_item:provider.name %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <code>{{ table }}</code>
+                    <form method="POST" onsubmit="return confirm('Delete table {{ table }}?')" class="m-0">
+                      {% csrf_token %}
+                      <input type="hidden" name="delete_table_name" value="{{ table }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete Table</button>
+                    </form>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted">No tables found for this provider.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted mt-2">No providers added yet.</p>
+{% endif %}
+
+
 </div>
 {% endblock %}
