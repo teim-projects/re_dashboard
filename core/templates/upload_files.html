@@ -66,7 +66,7 @@
 
 {% block content %}
 <div class="container ">
-  <div class="row justify-content-center mt-3 ">
+  <div class="row justify-content-center mt-4 ">
     <div class="col-md-8 mt-5">
       <div class="form-wrapper">
         <div class="form-heading">📁 Upload Customer Energy Data</div>
@@ -100,9 +100,9 @@
                 {% endfor %}
               </select>
             </div>
-          </div>
+        
 
-          <div class="mt-3">
+          <div class="mt-3 col-md-6">
             <label class="form-label">Select User <span class="text-danger">*</span></label>
             <select class="form-control" name="user_id">
               <option value="">Select User</option>
@@ -112,11 +112,11 @@
             </select>
           </div>
 
-          <div class="mt-3">
+          <div class="mt-3 col-md-6">
             <label class="form-label">Choose Excel File <span class="text-danger">*</span></label>
             <input type="file" class="form-control" name="data_file" required>
           </div>
-
+  </div>
           <div class="action-buttons">
             <button type="submit" class="btn btn-success btn-custom">📤 Upload File</button>
           </div>
@@ -125,7 +125,11 @@
     </div>
   </div>
 </div>
+ 
 
+   
+ 
+   
 <!-- Fixed Footer for Desktop & Tablet -->
 <div class="container-fluid py-3 mt-5 border-top text-center footer fixed-bottom d-none d-sm-block bg-white">
   <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-4 flex-wrap">
@@ -187,4 +191,5 @@
     </span>
   </div>
 </div>
+
 {% endblock content %}
