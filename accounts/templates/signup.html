@@ -105,7 +105,7 @@ Register User
 
 {% block content %}
 <div class="container" style="min-height: 100vh;">
-  <div class="row justify-content-center" style="margin-top: 100px;">
+  <div class="row justify-content-center" style="margin-top: 80px;">
     <div class="col-md-8" data-aos="fade-down">
       <div class="form-wrapper shadow-3d">
 
@@ -117,19 +117,19 @@ Register User
           <div class="row">
             <!-- Username -->
             <div class="col-md-6">
-              <label for="username" class="form-label">Username *</label>
+              <label for="username" class="form-label">Username<span class="text-danger"> *</span></label>
               <input type="text" name="username" id="username" class="form-control" required>
             </div>
 
             <!-- Email -->
             <div class="col-md-6">
-              <label for="email" class="form-label">Email *</label>
+              <label for="email" class="form-label">Email<span class="text-danger"> *</span></label>
               <input type="email" name="email" id="email" class="form-control" required>
             </div>
 
             <!-- Password -->
             <div class="col-md-6 mt-3">
-              <label for="password" class="form-label">Password *</label>
+              <label for="password" class="form-label">Password <span class="text-danger"> *</span></label>
               <input type="password" name="password" id="password" class="form-control" required>
             </div>
 
@@ -137,7 +137,7 @@ Register User
 <div class="col-md-6 mt-3">
  <!-- Stylish Energy Type Toggle Buttons -->
 <div class="form-group">
-  <label class="form-label">Select Energy Types:</label>
+  <label class="form-label">Select Energy Types<span class="text-danger"> *</span></label>
   <div class="d-flex flex-wrap gap-3">
     {% for energy in energy_choices %}
       <div class="energy-toggle">

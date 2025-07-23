@@ -106,34 +106,50 @@ def delete_user(request, user_id):
         return redirect('user_list')  # Assuming you named the URL
     return HttpResponse("Invalid request.")
 
+from django.contrib.auth.models import update_last_login
+from django.contrib.auth import get_user_model
+from django.contrib.auth.signals import user_logged_in
+from django.contrib.admin.models import LogEntry
+from django.utils.timezone import localtime
+
 @login_required
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     profile, _ = UserProfile.objects.get_or_create(user=user)
+
     if request.method == 'POST':
         user.username = request.POST.get("username")
         user.email = request.POST.get("email")
         user.is_active = 'is_active' in request.POST
         user.is_staff = 'is_staff' in request.POST
         user.is_superuser = 'is_superuser' in request.POST
+
         new_password = request.POST.get("password")
         if new_password:
             user.set_password(new_password)
+            profile.password_updated_at = timezone.now()  # ✅ Update timestamp
 
         user.save()
-         # ✅ Correct handling of ManyToManyField
+
         selected_energy_ids = request.POST.getlist("energy_types")
         profile.energy_types.set(selected_energy_ids)
         profile.save()
+
         messages.success(request, "User updated successfully.")
         return redirect('user_list')
-    # GET request
+
+    # GET
     energy_choices = EnergyType.objects.all()
     selected_energy_ids = profile.energy_types.values_list('id', flat=True)
+
     return render(request, 'edit_user.html', {
         'user_obj': user,
         'energy_choices': energy_choices,
-        'selected_energy_ids': selected_energy_ids
+        'selected_energy_ids': selected_energy_ids,
+        'current_login': request.user.last_login,
+        'last_login': user.last_login,
+        'created_on': user.date_joined,
+        'last_password_change': profile.password_updated_at  # ✅ Correct field name
     })
 
 
@@ -142,30 +158,38 @@ from .models import EnergyType
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .models import EnergyType
+
 @login_required
 def add_energy_type(request):
     if request.method == 'POST':
         if 'delete_id' in request.POST:
-            # Handle deletion
+            # 🗑️ Handle energy type deletion
             delete_id = request.POST.get('delete_id')
-            EnergyType.objects.filter(id=delete_id).delete()
-            messages.success(request, "Energy type deleted successfully!")
-            return redirect('register_user')  # 👈 redirect to register_user
+            try:
+                EnergyType.objects.get(id=delete_id).delete()
+                messages.success(request, "Energy type deleted successfully!")
+            except EnergyType.DoesNotExist:
+                messages.error(request, "Energy type not found.")
+            return redirect('add_energy_type')  # 👈 stay on same page
 
-        # Handle add
-        name = request.POST.get('name')
+        # ➕ Handle energy type addition
+        name = request.POST.get('name', '').strip()
         if name:
-            name = name.strip()
             obj, created = EnergyType.objects.get_or_create(name=name)
             if created:
                 messages.success(request, "Energy type added successfully!")
             else:
                 messages.warning(request, "Energy type already exists.")
-            return redirect('register_user')  # 👈 redirect to register_user
         else:
-            messages.error(request, "Please enter a valid name.")
+            messages.error(request, "Please enter a valid energy type name.")
+        return redirect('add_energy_type')  # 👈 stay on same page
 
-    energy_types = EnergyType.objects.all()
+    # 📋 Show existing energy types
+    energy_types = EnergyType.objects.all().order_by('name')
     return render(request, 'add_energy_type.html', {'energy_types': energy_types})
 
 import pandas as pd

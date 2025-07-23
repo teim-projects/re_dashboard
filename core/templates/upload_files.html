@@ -1,142 +1,190 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}
-Upload Files
-{% endblock title %}
+{% block title %}Upload Files{% endblock %}
 
 {% block style_css %}
 <style>
-  .card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+  .form-wrapper {
+    background: #fff;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   }
 
-  .card:hover {
-    transform: translateY(-5px);
+  .form-heading {
+    background: linear-gradient(to right, #7b2cbf, #9d4edd);
+    color: #fff;
+    padding: 15px 25px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
   }
 
-  .card-header {
-    background-color: #f8f9fa;
-    font-weight: bold;
-    font-size: 1.1rem;
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 12px 12px 0 0;
+  .form-label {
+    font-weight: 500;
+    margin-top: 12px;
   }
 
   .form-control {
-    border-radius: 8px;
+    border-radius: 10px;
+    padding: 10px 14px;
   }
 
-  .btn {
-    border-radius: 8px;
+  .btn-custom {
+    width: 160px;
     font-weight: 500;
+    font-size: 16px;
   }
 
-  .btn-success:hover {
-    background-color: #218838;
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
   }
 
-  .template-btn {
-    background-color: #9b59b6;
-    color: white;
-  }
+  @media (max-width: 576px) {
+    .form-heading {
+      font-size: 18px;
+    }
 
-  .template-btn:hover {
-    background-color: #8e44ad;
-  }
+    .btn-custom {
+      width: 100%;
+      font-size: 14px;
+    }
 
-  .main-content {
-    padding: 20px;
-    background-color: #f5f8fa;
-    border-radius: 12px;
-  }
-
-  h3.text-primary {
-    font-weight: 600;
-    margin-bottom: 30px;
-  }
-  .card-header{
-    background: linear-gradient(
-  90deg,
-  #ffffff,     /* Black */
-  #b77cff  /* Dark Gray */
-     /* Indigo-ish Gray */
-);
-
+    .form-control {
+      font-size: 14px;
+    }
   }
 </style>
 {% endblock style_css %}
 
 {% block content %}
-<div class="main-content mt-5 container">
-  <h3 class="text-primary text-center">📁 Upload Files</h3>
-  <div class="row">
+<div class="container ">
+  <div class="row justify-content-center mt-3 ">
+    <div class="col-md-8 mt-5">
+      <div class="form-wrapper">
+        <div class="form-heading">📁 Upload Customer Energy Data</div>
 
-    <!-- Upload Customer Data Card -->
-    <div class=""></div>
-    <div class="col-md-6 mb-4">
-      <div class="card">
-        <div class="card-header text-center" >Upload Customer Data</div>
-        <div class="card-body">
-          <form method="POST" enctype="multipart/form-data">
-  {% csrf_token %}
-  <div class="row">
-    <div class="col-md-6">
-     <div class="form-group">
-  <label>Select Provider (Table)</label>
-  <select class="form-control" name="provider" required>
-    <option value="">-- Select Provider Table --</option>
-    {% for table in expected_tables %}
-      <option value="{{ table.name }}">{{ table.label }}</option>
-    {% endfor %}
-  </select>
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label">Select Provider <span class="text-danger">*</span></label>
+              <select class="form-control" name="provider" required>
+                <option value="">-- Select Provider Table --</option>
+                {% for table in expected_tables %}
+                  <option value="{{ table.name }}">{{ table.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Select Energy Type <span class="text-danger">*</span></label>
+              <select class="form-control" name="energy_type">
+                <option value="">Select Energy Type</option>
+                {% for energy in energy_types %}
+                  <option value="{{ energy.id }}">{{ energy.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Select User <span class="text-danger">*</span></label>
+            <select class="form-control" name="user_id">
+              <option value="">Select User</option>
+              {% for user in staff_users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Choose Excel File <span class="text-danger">*</span></label>
+            <input type="file" class="form-control" name="data_file" required>
+          </div>
+
+          <div class="action-buttons">
+            <button type="submit" class="btn btn-success btn-custom">📤 Upload File</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
-    </div>
+<!-- Fixed Footer for Desktop & Tablet -->
+<div class="container-fluid py-3 mt-5 border-top text-center footer fixed-bottom d-none d-sm-block bg-white">
+  <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-4 flex-wrap">
+    <span style="font-weight: 600; color: #000;">
+      © 2025. Powered by
+      <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 20px; vertical-align: middle;">
+      <a href="http://www.chronoanalytics.in/" target="_blank"
+         style="text-decoration: none;
+                background: linear-gradient(to right, #2575fc, #6a11cb);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-weight: 600;">
+        Chronoanalytics Solution
+      </a>
+    </span>
 
-    <div class="col-md-6">
-      <div class="form-group">
-        <label>Select Energy Type</label>
-        <select class="form-control" name="energy_type">
-          <option value="">Select Energy Type</option>
-          {% for energy in energy_types %}
-            <option value="{{ energy.id }}">{{ energy.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
+    <span style="font-weight: 600; color: #000;">
+      | Marketed by
+      <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 20px; vertical-align: middle;">
+      <a href="http://teim.in/" target="_blank"
+         style="text-decoration: none;
+                background: linear-gradient(to right, #2575fc, #6a11cb);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-weight: 600;">
+        TEIM
+      </a>
+    </span>
   </div>
+</div>
 
-  <div class="form-group">
-    <label>Select User</label>
-    <select class="form-control" name="user_id">
-      <option value="">Select User</option>
-      {% for user in staff_users %}
-        <option value="{{ user.id }}">{{ user.username }}</option>
-      {% endfor %}
-    </select>
-  </div>
+<!-- Scrolling Footer for Mobile -->
+<div class="container-fluid py-3 mt-5 border-top text-center footer d-block d-sm-none bg-white">
+  <div class="d-flex flex-column justify-content-center align-items-center gap-2 flex-wrap">
+    <span style="font-weight: 600; color: #000;">
+      © 2025. Powered by
+      <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 18px; vertical-align: middle;">
+      <a href="http://www.chronoanalytics.in/" target="_blank"
+         style="text-decoration: none;
+                background: linear-gradient(to right, #2575fc, #6a11cb);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-weight: 600;">
+        Chronoanalytics
+      </a>
+    </span>
 
-  <div class="form-group">
-    <label>Choose File</label>
-    <input type="file" class="form-control" name="data_file">
-  </div>
-
-  <center>
-    <button type="submit" class="btn btn-success">Upload File</button>
-  </center>
-</form>
-
-        </div>
-      </div>
-    </div>
-
-   
-    </div>
-    <div class=""></div>
-
+    <span style="font-weight: 600; color: #000;">
+      Marketed by
+      <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 18px; vertical-align: middle;">
+      <a href="http://teim.in/" target="_blank"
+         style="text-decoration: none;
+                background: linear-gradient(to right, #2575fc, #6a11cb);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-weight: 600;">
+        TEIM
+      </a>
+    </span>
   </div>
 </div>
 {% endblock content %}

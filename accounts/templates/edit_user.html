@@ -85,7 +85,7 @@
 
 {% block content %}
 <div class="container" style="min-height: 100vh;">
- <div class="row justify-content-center align-items-stretch" style="margin-top: 100px; min-height: 100%;">
+ <div class="row justify-content-center align-items-stretch" style="margin-top: 80px; min-height: 100%;">
   <!-- Left Column -->
   <div class="col-md-9  mb-3 " data-aos="fade-down">
     <div class="form-wrapper h-100 shadow-3d d-flex flex-column">
@@ -96,16 +96,17 @@
         <div class="row">
           <!-- Username -->
           <div class="col-md-6">
-            <label for="username" class="form-label">Username *</label>
+            <label for="username" class="form-label">Username </label>
             <input type="text" name="username" class="form-control" value="{{ user_obj.username }}" required>
           </div>
 
           <!-- Email -->
           <div class="col-md-6">
-            <label for="email" class="form-label">Email *</label>
+            <label for="email" class="form-label">Email </label>
             <input type="email" name="email" class="form-control" value="{{ user_obj.email }}" required>
           </div>
 
+          
           <!-- New Password -->
           <div class="col-md-6 mt-3">
             <label for="password" class="form-label">New Password (optional)</label>
@@ -114,7 +115,7 @@
 
           <!-- Energy Type -->
           <div class="col-md-6 mt-3">
-            <label class="form-label">Select Energy Type *</label>
+            <label class="form-label">Select Energy Type </label>
             <div class="d-flex flex-wrap gap-3">
               {% for energy in energy_choices %}
                 <div class="energy-toggle">
@@ -182,13 +183,14 @@
     {% endif %}
   </p>
 
-  <p><strong>Last Password Update</strong><br>
-    {% if last_password_change %}
-      {{ last_password_change|date:"D, d M Y" }}<br>{{ last_password_change|time:"H:i:s" }} IST
-    {% else %}
-      Not available
-    {% endif %}
-  </p>
+<p><strong>Last Password Update</strong><br>
+  {% if last_password_change %}
+    {{ last_password_change|date:"D, d M Y" }}<br>{{ last_password_change|time:"H:i:s" }} IST
+  {% else %}
+    Not available
+  {% endif %}
+</p>
+
 
   <p><strong>Created On</strong><br>
     {% if created_on %}
