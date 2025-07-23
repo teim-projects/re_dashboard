@@ -1,57 +1,54 @@
 {% extends "base.html" %}
-
 {% load static %}
-{% block title %}
-  Modify Data
-{% endblock title %}
-  
+{% block title %}Modify Data{% endblock title %}
+
 {% block style_css %}
 <style>
-    body {
-      background-color: #f8f9fa;
-    }
+  body {
+    background-color: #f8f9fa;
+  }
 
-    .header-box {
-      background: linear-gradient(to right, #2196F3, #42A5F5);
-      color: white;
-      padding: 20px 30px;
-      border-radius: 15px;
-      box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
-      font-size: 22px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: fit-content;
-      margin: 40px auto 20px;
-    }
+  .header-box {
+    background: linear-gradient(to right, #2196F3, #42A5F5);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    margin: 40px auto 20px;
+  }
 
-    .form-container {
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
-      max-width: 500px;
-      margin: auto;
-    }
+  .form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+    max-width: 500px;
+    margin: auto;
+  }
 
-    .form-title {
-      font-weight: 600;
-      font-size: 18px;
-      margin-bottom: 25px;
-      text-align: center;
-    }
+  .form-title {
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 25px;
+    text-align: center;
+  }
 
-    .btn-danger {
-      width: 100%;
-      font-weight: 600;
-      padding: 10px 0;
-    }
-     .footer {
+  .btn-danger {
+    width: 100%;
+    font-weight: 600;
+    padding: 10px 0;
+  }
+
+  .footer {
     bottom: 0;
     width: 100%;
     padding: 10px 0;
-      
   }
 
   .footer p {
@@ -77,46 +74,60 @@
   }
 </style>
 {% endblock %}
+
 {% block content %}
-
 <div class="main" style="min-height:100vh;">
-
-
   <div class="form-container shadow-3d" style="margin-top: 100px;">
-    <div class="form-title">Delete Data - In Given Date Range</div>
+    <div class="form-title">🗑️ Delete Data - In Given Date Range</div>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
     <form method="POST">
-       {% csrf_token %}  
+      {% csrf_token %}
+      
       <div class="mb-3">
         <label for="userSelect" class="form-label">Select User</label>
         <select id="userSelect" name="user_id" class="form-select" required>
           <option selected disabled>Select User</option>
-          <!-- {% for user in users %} -->
-
-  <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
-
-          <!-- {% endfor %} -->
+          {% for user in users %}
+            <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+          {% endfor %}
         </select>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Select Start Date</label>
+        <label class="form-label">Select Provider Table</label>
+        <select name="table_name" class="form-select" required>
+          <option selected disabled>-- Select Table --</option>
+          {% for table in expected_tables %}
+            <option value="{{ table.name }}">{{ table.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Start Date</label>
         <input type="date" name="start_date" class="form-control" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Select End Date</label>
+        <label class="form-label">End Date</label>
         <input type="date" name="end_date" class="form-control" required>
       </div>
 
-<center>
+      <center>
         <button type="submit" class="btn btn-danger" style="width: 200px;">DELETE DATA</button>
-
-</center>    </form>
+      </center>
+    </form>
   </div>
 </div>
 
-
-  <div class="container-fluid py-3 footer">
+<!-- Footer -->
+<div class="container-fluid py-3 footer">
   <div class="row text-center justify-content-center">
     <div class="col-md-auto">
       <span style="font-weight: 600; color: #000;">
@@ -131,5 +142,4 @@
     </div>
   </div>
 </div>
-{% endblock content %}
-  
+{% endblock %}
