@@ -143,25 +143,28 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 
 
+ 
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.db import connection
-from accounts.models import Provider, EnergyType
 from django.utils.text import slugify
+from django.contrib.auth.models import User
+from accounts.models import Provider, EnergyType  # Adjust this import as needed
 
 @login_required
-def delete_data_view(request):
+def modify_data(request):
     users = User.objects.filter(is_superuser=False)
     providers = Provider.objects.all()
     energy_types = EnergyType.objects.all()
 
-    # Get all table names from DB
+    # Get all real tables in DB
     with connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         db_tables = [row[0] for row in cursor.fetchall()]
 
+    # Only show tables that were created using Add Provider logic
     expected_tables = []
     for provider in providers:
         for energy in energy_types:
@@ -172,15 +175,15 @@ def delete_data_view(request):
                     'label': f"{provider.name.title()} - {energy.name.title()}"
                 })
 
-    if request.method == 'POST':
-        user_id = request.POST.get('user_id')
-        table_name = request.POST.get('table_name')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+    if request.method == "POST":
+        user_id = request.POST.get("user_id")
+        table_name = request.POST.get("table_name")
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
 
         if not all([user_id, table_name, start_date, end_date]):
-            messages.error(request, "All fields are required.")
-            return redirect('delete_data')
+            messages.error(request, "❌ All fields are required.")
+            return redirect("modify_data")
 
         try:
             with connection.cursor() as cursor:
@@ -192,15 +195,14 @@ def delete_data_view(request):
                     AND date BETWEEN %s AND %s
                 """
                 cursor.execute(delete_sql, [user_id, start_date, end_date])
-                messages.success(request, "✅ Data deleted successfully.")
+            messages.success(request, "✅ Data deleted successfully.")
         except Exception as e:
             messages.error(request, f"❌ Error: {str(e)}")
+        return redirect("modify_data")
 
-        return redirect('delete_data')
-
-    return render(request, 'delete_data.html', {
-        'users': users,
-        'expected_tables': expected_tables
+    return render(request, "modify_data.html", {
+        "users": users,
+        "expected_tables": expected_tables
     })
 
  

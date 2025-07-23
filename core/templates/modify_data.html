@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Modify Data{% endblock title %}
+{% block title %}Modify Data{% endblock %}
 
 {% block style_css %}
 <style>
@@ -45,32 +45,9 @@
     padding: 10px 0;
   }
 
-  .footer {
-    bottom: 0;
-    width: 100%;
-    padding: 10px 0;
-  }
-
-  .footer p {
-    margin: 0;
-    font-weight: 600;
-    color: #000;
-    font-size: 14px;
-  }
-
-  .footer a {
-    background: linear-gradient(to right, #2575fc, #6a11cb);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 1rem;
-    text-decoration: none;
-    font-weight: bold;
-  }
-
-  .footer img {
-    height: 20px;
-    vertical-align: middle;
-    margin: 0 5px;
+  .alert {
+    font-weight: 500;
+    font-size: 15px;
   }
 </style>
 {% endblock %}
@@ -86,7 +63,7 @@
       {% endfor %}
     {% endif %}
 
-    <form method="POST">
+    <form method="POST" action="{% url 'modify_data' %}">
       {% csrf_token %}
       
       <div class="mb-3">
@@ -120,26 +97,9 @@
       </div>
 
       <center>
-        <button type="submit" class="btn btn-danger" style="width: 200px;">DELETE DATA</button>
+        <button type="submit" class="btn btn-danger">DELETE DATA</button>
       </center>
     </form>
-  </div>
-</div>
-
-<!-- Footer -->
-<div class="container-fluid py-3 footer">
-  <div class="row text-center justify-content-center">
-    <div class="col-md-auto">
-      <span style="font-weight: 600; color: #000;">
-        © 2025. Powered by
-        <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo">
-        <a href="http://www.chronoanalytics.in/" target="_blank">Chronoanalytics Solution</a>
-        |
-        Marketed by
-        <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo">
-        <a href="http://teim.in/" target="_blank">TEIM</a>
-      </span>
-    </div>
   </div>
 </div>
 {% endblock %}
