@@ -109,7 +109,7 @@ def upload_files(request):
             messages.success(request, f"✅ Data inserted into '{table_name}'.")
 
         except Exception as e:
-            messages.error(request, f"❌ Failed: {str(e)}")
+            messages.error(request, f"❌ Failed: Invalid Format ")
         finally:
             fs.delete(filename)
 
@@ -204,5 +204,73 @@ def modify_data(request):
         "users": users,
         "expected_tables": expected_tables
     })
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+import pandas as pd
 
+
+from django.utils.text import slugify
+from accounts.models import UserProfile  # already linked to User
+from django.contrib.auth.models import User
+
+@login_required
+def upload_installation_summary(request):
+    customers = User.objects.filter(is_superuser=False)
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        file = request.FILES.get('file')
+
+        if not user_id or not file:
+            messages.error(request, "All fields are required.")
+            return redirect('upload_installation_summary')
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, "Invalid customer selected.")
+            return redirect('upload_installation_summary')
+
+        fs = FileSystemStorage()
+        filename = fs.save(file.name, file)
+        file_path = fs.path(filename)
+
+        try:
+            df = pd.read_csv(file_path) if filename.endswith('.csv') else pd.read_excel(file_path)
+
+            df['uploaded_by'] = request.user.username  # uploader, not the customer
+            df['customer'] = user.username
+
+            df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
+
+            table_name = f"installation_summary_{slugify(user.username)}"
+
+            with connection.cursor() as cursor:
+                columns_sql = ", ".join([f"`{col}` TEXT" for col in df.columns])
+                cursor.execute(f"CREATE TABLE IF NOT EXISTS `{table_name}` ({columns_sql})")
+
+                for _, row in df.iterrows():
+                    columns = ", ".join(f"`{col}`" for col in df.columns)
+                    placeholders = ", ".join(["%s"] * len(row))
+                    values = list(row.values)
+                    cursor.execute(f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})", values)
+
+            messages.success(request, f"✅ Uploaded to table `{table_name}` successfully.")
+
+        except Exception as e:
+            messages.error(request, f"❌ Upload failed: Invalid format.")
+        finally:
+            fs.delete(filename)
+
+        return redirect('upload_installation_summary')
+
+    return render(request, 'upload_installation_summary.html', {
+        'customers': customers
+    })
+
+ 
  

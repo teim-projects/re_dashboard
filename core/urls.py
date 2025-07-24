@@ -9,5 +9,8 @@ urlpatterns = [
   path('modify-data/', modify_data, name="modify_data"),
   path('manage-users/', manage_user, name='manage_users'),
   path('client-info/',client_info, name="client_info"),
-  path('accounts/',include('accounts.urls')) 
+  path('accounts/',include('accounts.urls')),
+  path('upload-installation-summary/',upload_installation_summary, name='upload_installation_summary'),
+  
+
 ]
