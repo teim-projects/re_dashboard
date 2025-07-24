@@ -217,42 +217,86 @@ from django.utils.text import slugify
 from accounts.models import UserProfile  # already linked to User
 from django.contrib.auth.models import User
 
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+from django.utils.text import slugify
+from django.contrib.auth.models import User
+
+import pandas as pd
+
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+from django.shortcuts import render, redirect
+from django.utils.text import slugify
+from django.contrib.auth.models import User
+from accounts.models import EnergyType  # make sure this import is correct
+
+import pandas as pd
+
 @login_required
 def upload_installation_summary(request):
     customers = User.objects.filter(is_superuser=False)
+    energy_types = EnergyType.objects.all()
 
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
+        energy_type_id = request.POST.get('energy_type')
         file = request.FILES.get('file')
 
-        if not user_id or not file:
+        # Basic validation
+        if not user_id or not energy_type_id or not file:
             messages.error(request, "All fields are required.")
             return redirect('upload_installation_summary')
 
+        # Get customer
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             messages.error(request, "Invalid customer selected.")
             return redirect('upload_installation_summary')
 
+        # Get energy type
+        try:
+            energy_type = EnergyType.objects.get(id=energy_type_id)
+        except EnergyType.DoesNotExist:
+            messages.error(request, "Invalid energy type selected.")
+            return redirect('upload_installation_summary')
+
+        # Save uploaded file temporarily
         fs = FileSystemStorage()
         filename = fs.save(file.name, file)
         file_path = fs.path(filename)
 
         try:
-            df = pd.read_csv(file_path) if filename.endswith('.csv') else pd.read_excel(file_path)
+            # Read file content
+            if filename.endswith('.csv'):
+                df = pd.read_csv(file_path)
+            else:
+                df = pd.read_excel(file_path)
 
-            df['uploaded_by'] = request.user.username  # uploader, not the customer
+            # Add metadata columns
+            df['uploaded_by'] = request.user.username
             df['customer'] = user.username
+            df['energy_type'] = energy_type.name
 
+            # Normalize column names
             df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
 
-            table_name = f"installation_summary_{slugify(user.username)}"
+            # Dynamic table name based on customer and energy type
+            table_name = f"installation_summary_{slugify(user.username)}_{slugify(energy_type.name)}"
 
+            # Create table and insert data
             with connection.cursor() as cursor:
+                # Generate CREATE TABLE query
                 columns_sql = ", ".join([f"`{col}` TEXT" for col in df.columns])
                 cursor.execute(f"CREATE TABLE IF NOT EXISTS `{table_name}` ({columns_sql})")
 
+                # Insert rows
                 for _, row in df.iterrows():
                     columns = ", ".join(f"`{col}`" for col in df.columns)
                     placeholders = ", ".join(["%s"] * len(row))
@@ -262,15 +306,74 @@ def upload_installation_summary(request):
             messages.success(request, f"✅ Uploaded to table `{table_name}` successfully.")
 
         except Exception as e:
-            messages.error(request, f"❌ Upload failed: Invalid format.")
+            messages.error(request, f"❌ Upload failed: Invalid file format or data. ({str(e)})")
+
         finally:
             fs.delete(filename)
 
         return redirect('upload_installation_summary')
 
     return render(request, 'upload_installation_summary.html', {
-        'customers': customers
+        'customers': customers,
+        'energy_types': energy_types,
     })
 
- 
- 
+import io
+import pandas as pd
+from django.http import HttpResponse, Http404
+from django.utils.text import slugify
+from django.contrib.auth.models import User
+from accounts.models import EnergyType
+
+def download_dynamic_template(request):
+    user_id = request.GET.get('user_id')
+    energy_type_id = request.GET.get('energy_type_id')
+
+    if not user_id or not energy_type_id:
+        return HttpResponse("Missing user or energy type", status=400)
+
+    try:
+        user = User.objects.get(id=user_id)
+        energy_type = EnergyType.objects.get(id=energy_type_id)
+    except (User.DoesNotExist, EnergyType.DoesNotExist):
+        raise Http404("Invalid user or energy type")
+
+    table_name = f"installation_summary_{slugify(user.username)}_{slugify(energy_type.name)}"
+    columns = get_table_columns(table_name)
+
+    if not columns:
+        return HttpResponse("Template is not available for this user and energy type.", status=404)
+
+    # Remove metadata columns if needed
+    metadata_columns = ['uploaded_by', 'customer', 'energy_type']
+    user_columns = [col for col in columns if col not in metadata_columns]
+
+    df = pd.DataFrame(columns=user_columns)
+
+    # Optionally add metadata
+    df_meta = pd.DataFrame({
+        'Customer': [user.username],
+        'Energy Type': [energy_type.name],
+        'Table Name': [table_name]
+    })
+
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Template', index=False)
+        df_meta.to_excel(writer, sheet_name='Info', index=False)
+
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename=template_{user.username}_{energy_type.name}.xlsx'
+    return response
+
+def get_table_columns(table_name):
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+            return [row[0] for row in cursor.fetchall()]
+        except Exception:
+            return []
