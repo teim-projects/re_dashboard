@@ -11,7 +11,10 @@ urlpatterns = [
   path('client-info/',client_info, name="client_info"),
   path('accounts/',include('accounts.urls')),
   path('upload-installation-summary/',upload_installation_summary, name='upload_installation_summary'),
-  path('download-template/', download_dynamic_template, name='download_dynamic_template'),
+  path('upload-installation-data/', upload_installation_data, name='upload_installation_data'),
+  path('download-template/',download_template, name='download_template'),
+
+
 
 
 ]

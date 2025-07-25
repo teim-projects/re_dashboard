@@ -236,10 +236,107 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from accounts.models import EnergyType  # make sure this import is correct
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.utils.text import slugify
+from django.db import connection
 import pandas as pd
+
+from django.contrib.auth.models import User
+from accounts.models import EnergyType
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.utils.text import slugify
+from django.db import connection
+import pandas as pd
+from django.contrib.auth.models import User
+from accounts.models import EnergyType
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.utils.text import slugify
+from django.db import connection
+import pandas as pd
+from accounts.models import EnergyType
 
 @login_required
 def upload_installation_summary(request):
+    energy_types = EnergyType.objects.all()
+
+    if request.method == 'POST':
+        energy_type_id = request.POST.get('energy_type')
+        file = request.FILES.get('file')
+
+        if not energy_type_id or not file:
+            messages.error(request, "All fields are required.")
+            return redirect('upload_installation_summary')
+
+        try:
+            energy_type = EnergyType.objects.get(id=energy_type_id)
+        except EnergyType.DoesNotExist:
+            messages.error(request, "Invalid energy type.")
+            return redirect('upload_installation_summary')
+
+        fs = FileSystemStorage()
+        filename = fs.save(file.name, file)
+        file_path = fs.path(filename)
+
+        try:
+            # Read only the headers (ignore data rows)
+            if filename.endswith('.csv'):
+                df = pd.read_csv(file_path, nrows=0)
+            else:
+                df = pd.read_excel(file_path, nrows=0)
+
+            # Normalize headers
+            user_columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
+
+            # Prepend 'customer' (from request.user) and 'energy_type'
+            final_columns = ['customer', 'energy_type'] + user_columns
+
+            # Table name based on energy type
+            table_name = f"installation_summary_{slugify(energy_type.name)}"
+
+            with connection.cursor() as cursor:
+                columns_sql = ", ".join([f"`{col}` TEXT" for col in final_columns])
+                cursor.execute(f"CREATE TABLE IF NOT EXISTS `{table_name}` ({columns_sql})")
+
+            messages.success(request, f"✅ Structure created successfully for table `{table_name}`.")
+
+        except Exception as e:
+            messages.error(request, f"❌ Upload failed: {str(e)}")
+
+        finally:
+            fs.delete(filename)
+
+        return redirect('upload_installation_summary')
+
+    return render(request, 'upload_installation_summary.html', {
+        'energy_types': energy_types,
+    })
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.utils.text import slugify
+from django.db import connection
+import pandas as pd
+
+from django.contrib.auth.models import User
+from accounts.models import EnergyType
+
+
+@login_required
+def upload_installation_data(request):
     customers = User.objects.filter(is_superuser=False)
     energy_types = EnergyType.objects.all()
 
@@ -248,132 +345,116 @@ def upload_installation_summary(request):
         energy_type_id = request.POST.get('energy_type')
         file = request.FILES.get('file')
 
-        # Basic validation
         if not user_id or not energy_type_id or not file:
             messages.error(request, "All fields are required.")
-            return redirect('upload_installation_summary')
+            return redirect('upload_installation_data')
 
-        # Get customer
         try:
             user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            messages.error(request, "Invalid customer selected.")
-            return redirect('upload_installation_summary')
-
-        # Get energy type
-        try:
             energy_type = EnergyType.objects.get(id=energy_type_id)
-        except EnergyType.DoesNotExist:
-            messages.error(request, "Invalid energy type selected.")
-            return redirect('upload_installation_summary')
+        except (User.DoesNotExist, EnergyType.DoesNotExist):
+            messages.error(request, "Invalid user or energy type.")
+            return redirect('upload_installation_data')
 
-        # Save uploaded file temporarily
         fs = FileSystemStorage()
         filename = fs.save(file.name, file)
         file_path = fs.path(filename)
 
         try:
-            # Read file content
             if filename.endswith('.csv'):
                 df = pd.read_csv(file_path)
             else:
                 df = pd.read_excel(file_path)
 
-            # Add metadata columns
+            # Add metadata
             df['uploaded_by'] = request.user.username
             df['customer'] = user.username
             df['energy_type'] = energy_type.name
-
-            # Normalize column names
             df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
 
-            # Dynamic table name based on customer and energy type
-            table_name = f"installation_summary_{slugify(user.username)}_{slugify(energy_type.name)}"
+            table_name = f"installation_summary_{slugify(energy_type.name)}"
 
-            # Create table and insert data
+            # Fetch table columns from database
             with connection.cursor() as cursor:
-                # Generate CREATE TABLE query
-                columns_sql = ", ".join([f"`{col}` TEXT" for col in df.columns])
-                cursor.execute(f"CREATE TABLE IF NOT EXISTS `{table_name}` ({columns_sql})")
+                cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+                db_columns = [row[0] for row in cursor.fetchall()]
 
-                # Insert rows
+            # Validate that uploaded columns match existing table
+            missing_cols = set(db_columns) - set(df.columns)
+            if missing_cols:
+                messages.error(request, f"Uploaded file is missing columns: {', '.join(missing_cols)}")
+                return redirect('upload_installation_data')
+
+            # Reorder columns to match DB order
+            df = df[db_columns]
+
+            with connection.cursor() as cursor:
                 for _, row in df.iterrows():
                     columns = ", ".join(f"`{col}`" for col in df.columns)
                     placeholders = ", ".join(["%s"] * len(row))
                     values = list(row.values)
                     cursor.execute(f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})", values)
 
-            messages.success(request, f"✅ Uploaded to table `{table_name}` successfully.")
-
+            messages.success(request, f"✅ Data uploaded successfully into `{table_name}`.")
         except Exception as e:
-            messages.error(request, f"❌ Upload failed: Invalid file format or data. ({str(e)})")
-
+            messages.error(request, f"❌ Upload failed: {str(e)}")
         finally:
             fs.delete(filename)
 
-        return redirect('upload_installation_summary')
+        return redirect('upload_installation_data')
 
-    return render(request, 'upload_installation_summary.html', {
+    return render(request, 'upload_installation_data.html', {
         'customers': customers,
         'energy_types': energy_types,
     })
 
-import io
-import pandas as pd
-from django.http import HttpResponse, Http404
+
+
+
+
+ 
+
+from django.http import HttpResponse
 from django.utils.text import slugify
-from django.contrib.auth.models import User
-from accounts.models import EnergyType
+from django.db import connection
+import pandas as pd
+import io
 
-def download_dynamic_template(request):
-    user_id = request.GET.get('user_id')
-    energy_type_id = request.GET.get('energy_type_id')
+@login_required
+def download_template(request):
+    energy_type_id = request.GET.get('energy_type')
 
-    if not user_id or not energy_type_id:
-        return HttpResponse("Missing user or energy type", status=400)
+    if not energy_type_id:
+        return HttpResponse("Energy Type is required.", status=400)
 
     try:
-        user = User.objects.get(id=user_id)
         energy_type = EnergyType.objects.get(id=energy_type_id)
-    except (User.DoesNotExist, EnergyType.DoesNotExist):
-        raise Http404("Invalid user or energy type")
+    except EnergyType.DoesNotExist:
+        return HttpResponse("Invalid energy type.", status=400)
 
-    table_name = f"installation_summary_{slugify(user.username)}_{slugify(energy_type.name)}"
-    columns = get_table_columns(table_name)
+    table_name = f"installation_summary_{slugify(energy_type.name)}"
 
-    if not columns:
-        return HttpResponse("Template is not available for this user and energy type.", status=404)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+            columns = [row[0] for row in cursor.fetchall()]
+    except Exception as e:
+        return HttpResponse(f"Error reading table structure: {str(e)}", status=500)
 
-    # Remove metadata columns if needed
-    metadata_columns = ['uploaded_by', 'customer', 'energy_type']
-    user_columns = [col for col in columns if col not in metadata_columns]
+    # Remove system columns
+    exclude_columns = {'customer', 'energy_type'}
+    filtered_columns = [col for col in columns if col not in exclude_columns]
 
-    df = pd.DataFrame(columns=user_columns)
-
-    # Optionally add metadata
-    df_meta = pd.DataFrame({
-        'Customer': [user.username],
-        'Energy Type': [energy_type.name],
-        'Table Name': [table_name]
-    })
+    # Create empty DataFrame with just user-uploaded columns
+    df = pd.DataFrame(columns=filtered_columns)
 
     buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Template', index=False)
-        df_meta.to_excel(writer, sheet_name='Info', index=False)
-
+    df.to_excel(buffer, index=False)
     buffer.seek(0)
+
     response = HttpResponse(
         buffer,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = f'attachment; filename=template_{user.username}_{energy_type.name}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{table_name}_template.xlsx"'
     return response
-
-def get_table_columns(table_name):
-    with connection.cursor() as cursor:
-        try:
-            cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
-            return [row[0] for row in cursor.fetchall()]
-        except Exception:
-            return []

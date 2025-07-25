@@ -64,6 +64,9 @@
 {% endblock style_css %}
 
 {% block content %}
+<div class="main" style="min-height: 100vh;">
+
+
 <div class="container ">
   <div class="row justify-content-center mt-5 ">
     <div class="col-md-8 mt-5">
@@ -124,71 +127,14 @@
     </div>
   </div>
 </div>
+</div>
  
 
    
  
    
-<!-- Fixed Footer for Desktop & Tablet -->
-<div class="container-fluid py-3 mt-5 border-top text-center footer fixed-bottom d-none d-sm-block bg-white">
-  <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-4 flex-wrap">
-    <span style="font-weight: 600; color: #000;">
-      © 2025. Powered by
-      <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 20px; vertical-align: middle;">
-      <a href="http://www.chronoanalytics.in/" target="_blank"
-         style="text-decoration: none;
-                background: linear-gradient(to right, #2575fc, #6a11cb);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-weight: 600;">
-        Chronoanalytics Solution
-      </a>
-    </span>
 
-    <span style="font-weight: 600; color: #000;">
-      | Marketed by
-      <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 20px; vertical-align: middle;">
-      <a href="http://teim.in/" target="_blank"
-         style="text-decoration: none;
-                background: linear-gradient(to right, #2575fc, #6a11cb);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-weight: 600;">
-        TEIM
-      </a>
-    </span>
-  </div>
-</div>
 
-<!-- Scrolling Footer for Mobile -->
-<div class="container-fluid py-3 mt-5 border-top text-center footer d-block d-sm-none bg-white">
-  <div class="d-flex flex-column justify-content-center align-items-center gap-2 flex-wrap">
-    <span style="font-weight: 600; color: #000;">
-      © 2025. Powered by
-      <img src="{% static 'images/crono.png' %}" alt="Chronoanalytics Logo" style="height: 18px; vertical-align: middle;">
-      <a href="http://www.chronoanalytics.in/" target="_blank"
-         style="text-decoration: none;
-                background: linear-gradient(to right, #2575fc, #6a11cb);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-weight: 600;">
-        Chronoanalytics
-      </a>
-    </span>
 
-    <span style="font-weight: 600; color: #000;">
-      Marketed by
-      <img src="{% static 'images/TeimLogo.png' %}" alt="Teim Logo" style="height: 18px; vertical-align: middle;">
-      <a href="http://teim.in/" target="_blank"
-         style="text-decoration: none;
-                background: linear-gradient(to right, #2575fc, #6a11cb);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-weight: 600;">
-        TEIM
-      </a>
-    </span>
-  </div>
-</div>
 
 {% endblock content %}
