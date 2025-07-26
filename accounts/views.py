@@ -110,7 +110,8 @@ from django.contrib.auth.models import update_last_login
 from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in
 from django.contrib.admin.models import LogEntry
-from django.utils.timezone import localtime
+from django.utils import timezone  # ✅ Use only this
+ 
 
 @login_required
 def edit_user(request, user_id):
