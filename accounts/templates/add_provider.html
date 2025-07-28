@@ -81,10 +81,49 @@
         <form method="POST" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="row">
+
+
+
             <div class="col-md-6 mb-3">
-              <label class="form-label">Provider Name</label>
-              <input type="text" name="provider_name" class="form-control" placeholder="e.g., Suzlon" required>
-            </div>
+  <label class="form-label">Select User</label>
+  <select name="selected_user" class="form-control" required>
+    <option value="" disabled selected>-- Select User --</option>
+    {% for user in users %}
+      <option value="{{ user.username }}">{{ user.username }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+
+
+
+
+
+           <div class="col-md-6 mb-3">
+  <label class="form-label">Provider Name</label>
+
+  <select class="form-control mb-2" id="providerDropdown">
+    <option value="">-- Select Existing Provider --</option>
+    {% for provider in providers %}
+      <option value="{{ provider.name }}">{{ provider.name|title }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="text" name="provider_name" id="providerInput" class="form-control" placeholder="Or enter new provider name" required>
+  <small class="text-muted">Selecting a provider will auto-fill the input. You can also type manually.</small>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdown = document.getElementById("providerDropdown");
+    const input = document.getElementById("providerInput");
+
+    dropdown.addEventListener("change", function () {
+      input.value = this.value;
+    });
+  });
+</script>
+
 
             <div class="col-md-6 mb-3">
               <label class="form-label">Select Energy Type</label>

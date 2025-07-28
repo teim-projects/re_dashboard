@@ -36,56 +36,72 @@ from django.contrib.auth.models import User
 
 
 from django.db import connection
+from django.utils.text import slugify
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+import pandas as pd
+
+from accounts.models import EnergyType
+
+
+from django.contrib.auth.models import User
+
 
 from django.db import connection
 from django.utils.text import slugify
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+import pandas as pd
+
+from accounts.models import EnergyType
+
+from django.contrib.auth.models import User
 
 @login_required
 def upload_files(request):
     energy_types = EnergyType.objects.all()
-    staff_users = User.objects.filter(is_superuser=False)
     providers = Provider.objects.all()
 
-    # ✅ Step 1: Get all actual tables from DB
+    # ✅ Step 1: Fetch all existing DB tables
     with connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         db_tables = [row[0] for row in cursor.fetchall()]
 
-    # ✅ Step 2: Build only expected provider-energy_type table names
+    # ✅ Step 2: Build only expected username_provider_energytype tables
     expected_tables = []
-    for provider in providers:
-        for energy in energy_types:
-            table_name = f"{slugify(provider.name)}_{slugify(energy.name)}"
-            if table_name in db_tables:
+    for table in db_tables:
+        parts = table.split('_')
+        if len(parts) >= 3:
+            username = parts[0]
+            provider_slug = '_'.join(parts[1:-1])
+            energy_type_slug = parts[-1]
+
+            if Provider.objects.filter(name__iexact=provider_slug.replace('_', ' ')).exists() and \
+               EnergyType.objects.filter(name__iexact=energy_type_slug.replace('_', ' ')).exists():
                 expected_tables.append({
-                    'name': table_name,
-                    'label': f"{provider.name.title()} - {energy.name.title()}"
+                    'name': table,
+                    'label': f"{username} - {provider_slug.replace('_', ' ').title()} - {energy_type_slug.title()}"
                 })
 
     if request.method == 'POST':
-        provider = request.POST.get('provider', '').strip().lower().replace(' ', '_')
-        energy_type_id = request.POST.get('energy_type')
-        user_id = request.POST.get('user_id')
+        table_name = request.POST.get('provider', '').strip()
         data_file = request.FILES.get('data_file')
 
-        if not (provider and energy_type_id and user_id and data_file):
-            messages.error(request, "All fields are required.")
+        if not table_name or not data_file:
+            messages.error(request, "Both table and file are required.")
             return redirect('upload_files')
 
-        table_name = provider  # full table name like suzlon_wind
-
+        # ✅ Extract uploaded_by and energy_type from table name
         try:
-            energy_type = EnergyType.objects.get(id=energy_type_id)
-            energy_type_name = energy_type.name
-        except EnergyType.DoesNotExist:
-            messages.error(request, "Invalid energy type selected.")
-            return redirect('upload_files')
-
-        try:
-            user = User.objects.get(id=user_id)
-            uploaded_by = user.username
-        except User.DoesNotExist:
-            messages.error(request, "Invalid user selected.")
+            parts = table_name.split('_')
+            uploaded_by = parts[0]
+            energy_type = parts[-1].replace('_', ' ').title()
+        except Exception:
+            messages.error(request, "Invalid table format.")
             return redirect('upload_files')
 
         fs = FileSystemStorage()
@@ -94,33 +110,44 @@ def upload_files(request):
 
         try:
             df = pd.read_csv(file_path) if filename.endswith('.csv') else pd.read_excel(file_path)
-            df['energy_type'] = energy_type_name
+            df.columns = [col.strip().replace(" ", "_").lower() for col in df.columns]
+            df['energy_type'] = energy_type
             df['uploaded_by'] = uploaded_by
-            df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
 
+            rows_inserted = 0
             with connection.cursor() as cursor:
-                for _, row in df.iterrows():
-                    columns = ', '.join(f"`{col}`" for col in df.columns)
-                    placeholders = ', '.join(['%s'] * len(row))
-                    values = list(row.values)
-                    insert_sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
-                    cursor.execute(insert_sql, values)
+                for index, row in df.iterrows():
+                    try:
+                        columns = ', '.join(f"`{col}`" for col in df.columns)
+                        placeholders = ', '.join(['%s'] * len(row))
+                        values = list(row.values)
+                        insert_sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
+                        cursor.execute(insert_sql, values)
+                        rows_inserted += 1
+                    except Exception as row_error:
+                        print(f"❌ Skipped row {index + 1}: {row_error}")
 
-            messages.success(request, f"✅ Data inserted into '{table_name}'.")
+            if rows_inserted > 0:
+                messages.success(request, f"✅ Uploaded {rows_inserted} rows to '{table_name}'.")
+            else:
+                messages.error(request, "❌ Upload failed: No rows inserted. Check file structure.")
 
         except Exception as e:
-            messages.error(request, f"❌ Failed: Invalid Format ")
+            print("🔥 Upload failed:\n", traceback.format_exc())
+            messages.error(request, f"❌ Upload failed: {str(e)}")
         finally:
             fs.delete(filename)
 
         return redirect('upload_files')
 
     return render(request, 'upload_files.html', {
-        'energy_types': energy_types,
-        'staff_users': staff_users,
+        'expected_tables': expected_tables,
         'providers': providers,
-        'expected_tables': expected_tables,  # ✅ pass only valid ones
+        'energy_types': energy_types,
+        'staff_users': User.objects.filter(is_superuser=False),
     })
+
+
 
 
 @login_required

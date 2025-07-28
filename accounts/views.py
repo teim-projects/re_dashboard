@@ -232,9 +232,22 @@ from .models import Provider
 from accounts.models import EnergyType
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+from django.contrib.auth.models import User
+import pandas as pd
+
+from .models import Provider
+from accounts.models import EnergyType
+
+
 @login_required
 def add_provider_with_structure(request):
     energy_types = EnergyType.objects.all()
+    staff_users = User.objects.filter(is_superuser=False)
 
     if request.method == 'POST':
         # ✅ Delete a specific table
@@ -257,8 +270,9 @@ def add_provider_with_structure(request):
 
                 with connection.cursor() as cursor:
                     for energy in EnergyType.objects.all():
-                        table_name = f"{provider_clean}_{energy.name.lower().replace(' ', '_')}"
-                        cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
+                        for user in staff_users:
+                            table_name = f"{user.username.lower()}_{provider_clean}_{energy.name.lower().replace(' ', '_')}"
+                            cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
 
                 provider.delete()
                 messages.success(request, f"Provider and all related tables deleted.")
@@ -270,9 +284,16 @@ def add_provider_with_structure(request):
         provider_name = request.POST.get("provider_name", "").strip().lower().replace(' ', '_')
         energy_type_id = request.POST.get("energy_type")
         structure_file = request.FILES.get("structure_file")
+        selected_username = request.POST.get("selected_user")
 
-        if not provider_name or not energy_type_id or not structure_file:
-            messages.error(request, "Provider name, energy type, and file are required.")
+        if not provider_name or not energy_type_id or not structure_file or not selected_username:
+            messages.error(request, "All fields are required: provider, energy type, file, and user.")
+            return redirect("add_provider")
+
+        try:
+            user_obj = User.objects.get(username=selected_username)
+        except User.DoesNotExist:
+            messages.error(request, "Invalid user selected.")
             return redirect("add_provider")
 
         try:
@@ -283,7 +304,7 @@ def add_provider_with_structure(request):
             return redirect("add_provider")
 
         provider_obj, created = Provider.objects.get_or_create(name=provider_name)
-        table_name = f"{provider_name}_{energy_type_name}"
+        table_name = f"{selected_username.lower()}_{provider_name}_{energy_type_name}"
 
         fs = FileSystemStorage()
         filename = fs.save(structure_file.name, structure_file)
@@ -291,7 +312,7 @@ def add_provider_with_structure(request):
 
         try:
             df = pd.read_csv(file_path) if filename.endswith(".csv") else pd.read_excel(file_path)
-            df.columns = [col.strip().replace(" ", "_").lower() for col in df.columns]
+            df.columns = [str(col).strip().replace(" ", "_").lower() for col in df.columns]
 
             column_defs = [f"`{col}` TEXT" for col in df.columns]
             column_defs += ["`energy_type` TEXT", "`uploaded_by` TEXT"]
@@ -302,10 +323,11 @@ def add_provider_with_structure(request):
                     {", ".join(column_defs)}
                 );
             """
+
             with connection.cursor() as cursor:
                 cursor.execute(create_sql)
 
-            messages.success(request, f"Table '{table_name}' created for provider '{provider_name}'.")
+            messages.success(request, f"Table '{table_name}' created successfully for provider '{provider_name}' and user '{selected_username}'.")
 
         except Exception as e:
             messages.error(request, f"Error creating table: {str(e)}")
@@ -327,11 +349,12 @@ def add_provider_with_structure(request):
     provider_table_map = {}
     for provider in providers:
         key = provider.name.strip().lower().replace(' ', '_')
-        related_tables = [t for t in all_tables if t.startswith(key + "_")]
+        related_tables = [t for t in all_tables if f"_{key}_" in t]
         provider_table_map[provider.name] = related_tables
 
     return render(request, 'add_Provider.html', {
         'providers': providers,
         'energy_types': energy_types,
         'provider_table_map': provider_table_map,
+        'users': staff_users,
     })
