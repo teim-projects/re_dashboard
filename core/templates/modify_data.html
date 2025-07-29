@@ -48,7 +48,9 @@
   .alert {
     font-weight: 500;
     font-size: 15px;
+    margin-bottom: 15px;
   }
+
   .form-heading {
     background: linear-gradient(to right, #7b2cbf, #9d4edd);
     color: #fff;
@@ -59,6 +61,12 @@
     font-weight: 600;
     margin-bottom: 20px;
   }
+
+  small.text-muted {
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+  }
 </style>
 {% endblock %}
 
@@ -66,54 +74,45 @@
 <div class="main" style="min-height:100vh;">
   <div class="form-container shadow-3d" style="margin-top: 120px;">
     <div class="form-heading">🗑️ Delete Data - In Given Date Range</div>
-    
+
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %}
     {% endif %}
 
-    <form method="POST" action="{% url 'modify_data' %}">
+    <form method="POST" action="{% url 'modify_data' %}" onsubmit="return confirm('⚠️ Are you sure you want to delete the data within this date range? This action cannot be undone.');">
       {% csrf_token %}
-      
-<div class="row">
-  <div class="col-md-6 mb-3">
-    <label for="userSelect" class="form-label">Select User</label>
-    <select id="userSelect" name="user_id" class="form-select" required>
-      <option selected disabled>Select User</option>
-      {% for user in users %}
-        <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
-      {% endfor %}
-    </select>
-  </div>
 
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Select Provider Table</label>
-    <select name="table_name" class="form-select" required>
-      <option selected disabled>-- Select Table --</option>
-      {% for table in expected_tables %}
-        <option value="{{ table.name }}">{{ table.label }}</option>
-      {% endfor %}
-    </select>
-  </div>
-</div>
+      <div class="row">
+ 
 
+        <div class="col-md-12 mb-3">
+          <label class="form-label">Select Provider Table</label>
+          <select name="table_name" class="form-select" required>
+            <option selected disabled>-- Select Table --</option>
+            {% for table in expected_tables %}
+              <option value="{{ table.name }}">{{ table.label }}</option>
+            {% endfor %}
+          </select>
+          <small class="text-muted">Format: username - Provider - Energy Type</small>
+        </div>
+      </div>
 
-     <div class="row">
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Start Date</label>
-    <input type="date" name="start_date" class="form-control" required>
-  </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Start Date</label>
+          <input type="date" name="start_date" class="form-control" required>
+        </div>
 
-  <div class="col-md-6 mb-3">
-    <label class="form-label">End Date</label>
-    <input type="date" name="end_date" class="form-control" required>
-  </div>
-</div>
-
+        <div class="col-md-6 mb-3">
+          <label class="form-label">End Date</label>
+          <input type="date" name="end_date" class="form-control" required>
+        </div>
+      </div>
 
       <center>
-        <button type="submit" class="btn btn-danger btn-danger3  w-50 mt-2 mb-2">DELETE DATA</button>
+        <button type="submit" class="btn btn-danger btn-danger3 w-50 mt-2 mb-2">DELETE DATA</button>
       </center>
     </form>
   </div>

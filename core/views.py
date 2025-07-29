@@ -179,27 +179,32 @@ from django.db import connection
 from django.utils.text import slugify
 from django.contrib.auth.models import User
 from accounts.models import Provider, EnergyType  # Adjust this import as needed
-
 @login_required
 def modify_data(request):
     users = User.objects.filter(is_superuser=False)
-    providers = Provider.objects.all()
     energy_types = EnergyType.objects.all()
+    providers = Provider.objects.all()
 
-    # Get all real tables in DB
+    # Fetch all actual tables from DB
     with connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         db_tables = [row[0] for row in cursor.fetchall()]
 
-    # Only show tables that were created using Add Provider logic
+    # Match pattern: username_provider_energytype
     expected_tables = []
-    for provider in providers:
-        for energy in energy_types:
-            table_name = f"{slugify(provider.name)}_{slugify(energy.name)}"
-            if table_name in db_tables:
+    for table in db_tables:
+        parts = table.split('_')
+        if len(parts) >= 3:
+            username = parts[0]
+            provider_slug = '_'.join(parts[1:-1])
+            energy_type_slug = parts[-1]
+
+            # Recheck if valid provider + energy type
+            if Provider.objects.filter(name__iexact=provider_slug.replace('_', ' ')).exists() and \
+               EnergyType.objects.filter(name__iexact=energy_type_slug.replace('_', ' ')).exists():
                 expected_tables.append({
-                    'name': table_name,
-                    'label': f"{provider.name.title()} - {energy.name.title()}"
+                    'name': table,
+                    'label': f"{username} - {provider_slug.replace('_', ' ').title()} - {energy_type_slug.title()}"
                 })
 
     if request.method == "POST":
@@ -231,14 +236,6 @@ def modify_data(request):
         "users": users,
         "expected_tables": expected_tables
     })
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.core.files.storage import FileSystemStorage
-from django.db import connection
-import pandas as pd
-
 
 from django.utils.text import slugify
 from accounts.models import UserProfile  # already linked to User
