@@ -137,7 +137,7 @@
 
             <div class="col-md-6 mb-3">
               <label class="form-label">Upload Table Structure (CSV or Excel)</label>
-              <input type="file" name="structure_file" class="form-control" accept=".csv,.xlsx" required>
+<input type="file" name="structure_file" class="form-control" accept=".csv,.xls,.xlsx,.xlsm,.ods,.odt" required>
               <small class="text-muted">Only header row needed. File won't be saved.</small>
             </div>
           </div>
@@ -233,4 +233,23 @@
     </span>
   </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdown = document.getElementById("providerDropdown");
+    const input = document.getElementById("providerInput");
+
+    dropdown.addEventListener("change", function () {
+      input.value = this.value;
+    });
+
+    // On submit, make sure either dropdown or input is filled
+    document.querySelector("form").addEventListener("submit", function (e) {
+      if (!dropdown.value && !input.value.trim()) {
+        e.preventDefault();
+        alert("Please select or enter a provider name.");
+      }
+    });
+  });
+</script>
+
 {% endblock %}

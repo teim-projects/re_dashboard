@@ -240,8 +240,34 @@ from django.db import connection
 from django.contrib.auth.models import User
 import pandas as pd
 
-from .models import Provider
+from accounts.models import Provider
 from accounts.models import EnergyType
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+from django.contrib.auth.models import User
+
+from accounts.models import Provider, EnergyType
+
+import pandas as pd
+import os
+
+import os
+import pandas as pd
+import re
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from django.db import connection
+
+# from .models import Provider, EnergyType
+from django.contrib.auth.models import User
 
 
 @login_required
@@ -261,7 +287,7 @@ def add_provider_with_structure(request):
                 messages.error(request, f"Error deleting table: {str(e)}")
             return redirect("add_provider")
 
-        # ✅ Delete entire provider
+        # ✅ Delete entire provider and related tables
         elif 'delete_id' in request.POST:
             delete_id = request.POST.get('delete_id')
             try:
@@ -280,7 +306,7 @@ def add_provider_with_structure(request):
                 messages.error(request, f"Error deleting provider: {str(e)}")
             return redirect("add_provider")
 
-        # ✅ Add new provider + table
+        # ✅ Add new provider + create structure table
         provider_name = request.POST.get("provider_name", "").strip().lower().replace(' ', '_')
         energy_type_id = request.POST.get("energy_type")
         structure_file = request.FILES.get("structure_file")
@@ -311,9 +337,24 @@ def add_provider_with_structure(request):
         file_path = fs.path(filename)
 
         try:
-            df = pd.read_csv(file_path) if filename.endswith(".csv") else pd.read_excel(file_path)
-            df.columns = [str(col).strip().replace(" ", "_").lower() for col in df.columns]
+            # ✅ Detect file extension
+            file_ext = os.path.splitext(filename)[1].lower()
 
+            # ✅ Read file into pandas DataFrame
+            if file_ext == ".csv":
+                df = pd.read_csv(file_path)
+            elif file_ext in [".xls", ".xlsx", ".xlsm", ".xlsb"]:
+                df = pd.read_excel(file_path, engine='openpyxl')
+            elif file_ext == ".ods":
+                df = pd.read_excel(file_path, engine='odf')
+            else:
+                messages.error(request, f"Unsupported file type: {file_ext}.")
+                return redirect("add_provider")
+
+            # ✅ Clean column names — MATCHES upload logic
+            df.columns = [re.sub(r'\W+', '_', str(col).strip()).lower().strip('_') for col in df.columns]
+
+            # ✅ Build SQL create statement
             column_defs = [f"`{col}` TEXT" for col in df.columns]
             column_defs += ["`energy_type` TEXT", "`uploaded_by` TEXT"]
 
@@ -327,17 +368,17 @@ def add_provider_with_structure(request):
             with connection.cursor() as cursor:
                 cursor.execute(create_sql)
 
-            messages.success(request, f"Table '{table_name}' created successfully for provider '{provider_name}' and user '{selected_username}'.")
+            messages.success(request, f"✅ Table '{table_name}' created successfully for provider '{provider_name}' and user '{selected_username}'.")
 
         except Exception as e:
-            messages.error(request, f"Error creating table: {str(e)}")
+            messages.error(request, f"❌ Error creating table: {str(e)}")
 
         finally:
             fs.delete(filename)
 
         return redirect("add_provider")
 
-    # ✅ GET request
+    # ✅ GET request — display form
     providers = Provider.objects.all()
 
     # Fetch all DB tables

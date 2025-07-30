@@ -61,17 +61,62 @@ from accounts.models import EnergyType
 
 from django.contrib.auth.models import User
 
+import traceback
+import pandas as pd
+from django.shortcuts import render, redirect
+from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import connection
+from django.contrib.auth.models import User
+# from .models import Provider, EnergyType
+
+
+import os
+import pandas as pd
+import traceback
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+from django.contrib.auth.models import User
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+# from .models import Provider, EnergyType
+from django.contrib.auth.models import User
+import pandas as pd
+import traceback
+import os
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+# from .models import Provider, EnergyType
+from django.contrib.auth.models import User
+import pandas as pd
+import traceback
+import os
+import re  # ✅ for cleaning column names
+
 @login_required
 def upload_files(request):
     energy_types = EnergyType.objects.all()
     providers = Provider.objects.all()
 
-    # ✅ Step 1: Fetch all existing DB tables
+    # ✅ Fetch all existing DB tables
     with connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         db_tables = [row[0] for row in cursor.fetchall()]
 
-    # ✅ Step 2: Build only expected username_provider_energytype tables
+    # ✅ Build username_provider_energytype style labels
     expected_tables = []
     for table in db_tables:
         parts = table.split('_')
@@ -79,7 +124,6 @@ def upload_files(request):
             username = parts[0]
             provider_slug = '_'.join(parts[1:-1])
             energy_type_slug = parts[-1]
-
             if Provider.objects.filter(name__iexact=provider_slug.replace('_', ' ')).exists() and \
                EnergyType.objects.filter(name__iexact=energy_type_slug.replace('_', ' ')).exists():
                 expected_tables.append({
@@ -95,7 +139,6 @@ def upload_files(request):
             messages.error(request, "Both table and file are required.")
             return redirect('upload_files')
 
-        # ✅ Extract uploaded_by and energy_type from table name
         try:
             parts = table_name.split('_')
             uploaded_by = parts[0]
@@ -109,11 +152,34 @@ def upload_files(request):
         file_path = fs.path(filename)
 
         try:
-            df = pd.read_csv(file_path) if filename.endswith('.csv') else pd.read_excel(file_path)
-            df.columns = [col.strip().replace(" ", "_").lower() for col in df.columns]
-            df['energy_type'] = energy_type
-            df['uploaded_by'] = uploaded_by
+            ext = os.path.splitext(filename)[1].lower()
+            if ext == '.csv':
+                df = pd.read_csv(file_path)
+            elif ext in ['.xls', '.xlsx', '.xlsm', '.ods', '.odt']:
+                df = pd.read_excel(file_path, engine='odf' if ext in ['.ods', '.odt'] else None)
+            else:
+                raise Exception("Unsupported file format.")
 
+            # ✅ Clean column names (replace spaces, dots, %, etc.)
+            df.columns = [re.sub(r'\W+', '_', col.strip()).lower().strip('_') for col in df.columns]
+
+            # ✅ Fetch table columns from DB
+            with connection.cursor() as cursor:
+                cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+                table_columns = [col[0].lower() for col in cursor.fetchall()]
+
+            # ✅ Check for missing columns
+            missing_cols = [col for col in df.columns if col not in table_columns]
+            if missing_cols:
+                raise Exception(f"Columns not found in table `{table_name}`: {missing_cols}")
+
+            # ✅ Add extra fields if present
+            if 'energy_type' in table_columns:
+                df['energy_type'] = energy_type
+            if 'uploaded_by' in table_columns:
+                df['uploaded_by'] = uploaded_by
+
+            # ✅ Insert data row by row
             rows_inserted = 0
             with connection.cursor() as cursor:
                 for index, row in df.iterrows():
