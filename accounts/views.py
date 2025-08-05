@@ -239,7 +239,6 @@ from django.core.files.storage import FileSystemStorage
 from django.db import connection
 from django.contrib.auth.models import User
 import pandas as pd
-
 from accounts.models import Provider
 from accounts.models import EnergyType
 
@@ -250,7 +249,6 @@ from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.db import connection
 from django.contrib.auth.models import User
-
 from accounts.models import Provider, EnergyType
 
 import pandas as pd

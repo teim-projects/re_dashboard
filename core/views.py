@@ -15,205 +15,6 @@ def dashboard(request):
         return render(request, 'customer_home.html')  # Regular user dashboard
     
 
-import pandas as pd
-from django.db import connection
-from django.core.files.storage import FileSystemStorage
-from django.contrib import messages
-from accounts.models import EnergyType
-from accounts.models import Provider  # Assuming model is in `core`
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-
-from django.db import connection
-from django.core.files.storage import FileSystemStorage
-from django.contrib import messages
-import pandas as pd
-import os
-
-from django.contrib.auth.decorators import login_required
-from accounts.models import EnergyType
-from django.contrib.auth.models import User
-
-
-from django.db import connection
-from django.utils.text import slugify
-from django.core.files.storage import FileSystemStorage
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import render, redirect
-import pandas as pd
-
-from accounts.models import EnergyType
-
-
-from django.contrib.auth.models import User
-
-
-from django.db import connection
-from django.utils.text import slugify
-from django.core.files.storage import FileSystemStorage
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import render, redirect
-import pandas as pd
-
-from accounts.models import EnergyType
-
-from django.contrib.auth.models import User
-
-import traceback
-import pandas as pd
-from django.shortcuts import render, redirect
-from django.core.files.storage import FileSystemStorage
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.db import connection
-from django.contrib.auth.models import User
-# from .models import Provider, EnergyType
-
-
-import os
-import pandas as pd
-import traceback
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import FileSystemStorage
-from django.db import connection
-from django.contrib.auth.models import User
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import FileSystemStorage
-from django.db import connection
-# from .models import Provider, EnergyType
-from django.contrib.auth.models import User
-import pandas as pd
-import traceback
-import os
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import FileSystemStorage
-from django.db import connection
-# from .models import Provider, EnergyType
-from django.contrib.auth.models import User
-import pandas as pd
-import traceback
-import os
-import re  # ✅ for cleaning column names
-
-@login_required
-def upload_files(request):
-    energy_types = EnergyType.objects.all()
-    providers = Provider.objects.all()
-
-    # ✅ Fetch all existing DB tables
-    with connection.cursor() as cursor:
-        cursor.execute("SHOW TABLES;")
-        db_tables = [row[0] for row in cursor.fetchall()]
-
-    # ✅ Build username_provider_energytype style labels
-    expected_tables = []
-    for table in db_tables:
-        parts = table.split('_')
-        if len(parts) >= 3:
-            username = parts[0]
-            provider_slug = '_'.join(parts[1:-1])
-            energy_type_slug = parts[-1]
-            if Provider.objects.filter(name__iexact=provider_slug.replace('_', ' ')).exists() and \
-               EnergyType.objects.filter(name__iexact=energy_type_slug.replace('_', ' ')).exists():
-                expected_tables.append({
-                    'name': table,
-                    'label': f"{username} - {provider_slug.replace('_', ' ').title()} - {energy_type_slug.title()}"
-                })
-
-    if request.method == 'POST':
-        table_name = request.POST.get('provider', '').strip()
-        data_file = request.FILES.get('data_file')
-
-        if not table_name or not data_file:
-            messages.error(request, "Both table and file are required.")
-            return redirect('upload_files')
-
-        try:
-            parts = table_name.split('_')
-            uploaded_by = parts[0]
-            energy_type = parts[-1].replace('_', ' ').title()
-        except Exception:
-            messages.error(request, "Invalid table format.")
-            return redirect('upload_files')
-
-        fs = FileSystemStorage()
-        filename = fs.save(data_file.name, data_file)
-        file_path = fs.path(filename)
-
-        try:
-            ext = os.path.splitext(filename)[1].lower()
-            if ext == '.csv':
-                df = pd.read_csv(file_path)
-            elif ext in ['.xls', '.xlsx', '.xlsm', '.ods', '.odt']:
-                df = pd.read_excel(file_path, engine='odf' if ext in ['.ods', '.odt'] else None)
-            else:
-                raise Exception("Unsupported file format.")
-
-            # ✅ Clean column names (replace spaces, dots, %, etc.)
-            df.columns = [re.sub(r'\W+', '_', col.strip()).lower().strip('_') for col in df.columns]
-
-            # ✅ Fetch table columns from DB
-            with connection.cursor() as cursor:
-                cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
-                table_columns = [col[0].lower() for col in cursor.fetchall()]
-
-            # ✅ Check for missing columns
-            missing_cols = [col for col in df.columns if col not in table_columns]
-            if missing_cols:
-                raise Exception(f"Columns not found in table `{table_name}`: {missing_cols}")
-
-            # ✅ Add extra fields if present
-            if 'energy_type' in table_columns:
-                df['energy_type'] = energy_type
-            if 'uploaded_by' in table_columns:
-                df['uploaded_by'] = uploaded_by
-
-            # ✅ Insert data row by row
-            rows_inserted = 0
-            with connection.cursor() as cursor:
-                for index, row in df.iterrows():
-                    try:
-                        columns = ', '.join(f"`{col}`" for col in df.columns)
-                        placeholders = ', '.join(['%s'] * len(row))
-                        values = list(row.values)
-                        insert_sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
-                        cursor.execute(insert_sql, values)
-                        rows_inserted += 1
-                    except Exception as row_error:
-                        print(f"❌ Skipped row {index + 1}: {row_error}")
-
-            if rows_inserted > 0:
-                messages.success(request, f"✅ Uploaded {rows_inserted} rows to '{table_name}'.")
-            else:
-                messages.error(request, "❌ Upload failed: No rows inserted. Check file structure.")
-
-        except Exception as e:
-            print("🔥 Upload failed:\n", traceback.format_exc())
-            messages.error(request, f"❌ Upload failed: {str(e)}")
-        finally:
-            fs.delete(filename)
-
-        return redirect('upload_files')
-
-    return render(request, 'upload_files.html', {
-        'expected_tables': expected_tables,
-        'providers': providers,
-        'energy_types': energy_types,
-        'staff_users': User.objects.filter(is_superuser=False),
-    })
-
-
 
 
 @login_required
@@ -551,3 +352,327 @@ def download_template(request):
     )
     response['Content-Disposition'] = f'attachment; filename="{table_name}_template.xlsx"'
     return response
+
+
+
+
+import pandas as pd
+from django.db import connection
+from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
+from accounts.models import EnergyType
+from accounts.models import Provider  # Assuming model is in `core`
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+
+from django.db import connection
+from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
+import pandas as pd
+import os
+
+from django.contrib.auth.decorators import login_required
+from accounts.models import EnergyType
+from django.contrib.auth.models import User
+
+
+from django.db import connection
+from django.utils.text import slugify
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+import pandas as pd
+
+from accounts.models import EnergyType
+
+
+from django.contrib.auth.models import User
+
+
+from django.db import connection
+from django.utils.text import slugify
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+import pandas as pd
+
+from accounts.models import EnergyType
+
+from django.contrib.auth.models import User
+
+import traceback
+import pandas as pd
+from django.shortcuts import render, redirect
+from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import connection
+from django.contrib.auth.models import User
+# from .models import Provider, EnergyType
+
+
+import os
+import pandas as pd
+import traceback
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+from django.contrib.auth.models import User
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+# from .models import Provider, EnergyType
+from django.contrib.auth.models import User
+import pandas as pd
+import traceback
+import os
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.db import connection
+# from .models import Provider, EnergyType
+from django.contrib.auth.models import User
+import pandas as pd
+import traceback
+import os
+import re  # ✅ for cleaning column names
+from .models import UploadMetadata  # ✅ import your model
+from django.utils.timezone import now  # for timezone-aware timestamp
+
+@login_required
+def upload_files(request):
+    energy_types = EnergyType.objects.all()
+    providers = Provider.objects.all()
+
+    # ✅ Fetch all existing DB tables
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW TABLES;")
+        db_tables = [row[0] for row in cursor.fetchall()]
+
+    # ✅ Build username_provider_energytype style labels
+    expected_tables = []
+    for table in db_tables:
+        parts = table.split('_')
+        if len(parts) >= 3:
+            username = parts[0]
+            provider_slug = '_'.join(parts[1:-1])
+            energy_type_slug = parts[-1]
+            if Provider.objects.filter(name__iexact=provider_slug.replace('_', ' ')).exists() and \
+               EnergyType.objects.filter(name__iexact=energy_type_slug.replace('_', ' ')).exists():
+                expected_tables.append({
+                    'name': table,
+                    'label': f"{username} - {provider_slug.replace('_', ' ').title()} - {energy_type_slug.title()}"
+                })
+
+    if request.method == 'POST':
+        table_name = request.POST.get('provider', '').strip()
+        data_file = request.FILES.get('data_file')
+
+        if not table_name or not data_file:
+            messages.error(request, "Both table and file are required.")
+            return redirect('upload_files')
+
+        try:
+            parts = table_name.split('_')
+            uploaded_by = parts[0]
+            energy_type = parts[-1].replace('_', ' ').title()
+        except Exception:
+            messages.error(request, "Invalid table format.")
+            return redirect('upload_files')
+
+        fs = FileSystemStorage()
+        filename = fs.save(data_file.name, data_file)
+        file_path = fs.path(filename)
+
+        try:
+            ext = os.path.splitext(filename)[1].lower()
+            if ext == '.csv':
+                df = pd.read_csv(file_path)
+            elif ext in ['.xls', '.xlsx', '.xlsm', '.ods', '.odt']:
+                df = pd.read_excel(file_path, engine='odf' if ext in ['.ods', '.odt'] else None)
+            else:
+                raise Exception("Unsupported file format.")
+
+            # ✅ Clean column names (replace spaces, dots, %, etc.)
+            df.columns = [re.sub(r'\W+', '_', col.strip()).lower().strip('_') for col in df.columns]
+
+            # ✅ Fetch table columns from DB
+            with connection.cursor() as cursor:
+                cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+                table_columns = [col[0].lower() for col in cursor.fetchall()]
+
+            # ✅ Check for missing columns
+            missing_cols = [col for col in df.columns if col not in table_columns]
+            if missing_cols:
+                raise Exception(f"Columns not found in table `{table_name}`: {missing_cols}")
+
+            # ✅ Add extra fields if present
+            if 'energy_type' in table_columns:
+                df['energy_type'] = energy_type
+            if 'uploaded_by' in table_columns:
+                df['uploaded_by'] = uploaded_by
+
+            # ✅ Insert data row by row
+            rows_inserted = 0
+            with connection.cursor() as cursor:
+                for index, row in df.iterrows():
+                    try:
+                        columns = ', '.join(f"`{col}`" for col in df.columns)
+                        placeholders = ', '.join(['%s'] * len(row))
+                        values = list(row.values)
+                        insert_sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
+                        cursor.execute(insert_sql, values)
+                        rows_inserted += 1
+                    except Exception as row_error:
+                        print(f"❌ Skipped row {index + 1}: {row_error}")
+
+            if rows_inserted > 0:
+                # ✅ Update last modified timestamp
+                UploadMetadata.objects.update_or_create(
+                    table_name=table_name,
+                    defaults={'last_modified': now()}
+                )
+                messages.success(request, f"✅ Uploaded {rows_inserted} rows to '{table_name}'.")
+            else:
+                messages.error(request, "❌ Upload failed: No rows inserted. Check file structure.")
+
+        except Exception as e:
+            print("🔥 Upload failed:\n", traceback.format_exc())
+            messages.error(request, f"❌ Upload failed: {str(e)}")
+        finally:
+            fs.delete(filename)
+
+        return redirect('upload_files')
+
+    return render(request, 'upload_files.html', {
+        'expected_tables': expected_tables,
+        'providers': providers,
+        'energy_types': energy_types,
+        'staff_users': User.objects.filter(is_superuser=False),
+    })
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.db import connection
+from django.contrib.auth.models import User
+from accounts.models import Provider
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db import connection, DatabaseError
+
+from django.db import connection, DatabaseError
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from accounts.models import Provider, EnergyType
+import re
+
+from django.db import connection, DatabaseError
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+ 
+from .models import UploadMetadata  # ✅ import this
+from django.db.utils import DatabaseError
+from django.contrib.auth.decorators import login_required
+from django.db import connection
+from django.shortcuts import render
+
+from django.shortcuts import render
+from django.db import connection, DatabaseError
+from django.contrib.auth.decorators import login_required
+ 
+from django.core.paginator import Paginator
+from django.db import connection, DatabaseError
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from accounts.models import Provider, EnergyType
+from core.models import UploadMetadata
+
+from django.shortcuts import render
+from django.db import connection, DatabaseError
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+ 
+
+@login_required
+def client_info(request):
+    client_data = []
+
+    # Get all tables
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW TABLES;")
+        all_tables = [row[0] for row in cursor.fetchall()]
+
+    # Parse relevant dynamic tables
+    for table in all_tables:
+        parts = table.split('_')
+        if len(parts) >= 3:
+            username = parts[0]
+            provider_slug = '_'.join(parts[1:-1])
+            energy_type_slug = parts[-1]
+
+            provider_name = provider_slug.replace('_', ' ').title()
+            energy_type_name = energy_type_slug.replace('_', ' ').title()
+
+            provider_exists = Provider.objects.filter(name__iexact=provider_name).exists()
+            energy_exists = EnergyType.objects.filter(name__iexact=energy_type_name).exists()
+
+            if provider_exists and energy_exists:
+                try:
+                    # Check for 'uploaded_by' column
+                    with connection.cursor() as cursor:
+                        cursor.execute(f"SHOW COLUMNS FROM `{table}`")
+                        available_cols = [row[0] for row in cursor.fetchall()]
+
+                    uploaded_by = 'uploaded_by' if 'uploaded_by' in available_cols else None
+
+                    row_uploaded_by = None
+                    if uploaded_by:
+                        with connection.cursor() as cursor:
+                            cursor.execute(f"SELECT `{uploaded_by}` FROM `{table}` LIMIT 1")
+                            result = cursor.fetchone()
+                            if result:
+                                row_uploaded_by = result[0]
+
+                    # Get last modified time
+                    try:
+                        metadata = UploadMetadata.objects.get(table_name=table)
+                        last_modified = metadata.last_modified.strftime('%Y-%m-%d %H:%M:%S')
+                    except UploadMetadata.DoesNotExist:
+                        last_modified = "N/A"
+
+                    # Prepare client name and data
+                    client_name = f"{row_uploaded_by}_{energy_type_name}" if row_uploaded_by else "N/A"
+
+                    client_data.append({
+                        "client": client_name,
+                        "oem": provider_name,
+                        "generation": "N/A",  # Placeholder
+                        "breakdown": "N/A",   # Placeholder
+                        "last_modified": last_modified,
+                    })
+
+                except DatabaseError as e:
+                    print(f"⚠️ Skipping table `{table}` due to error: {e}")
+                    continue
+
+    # PAGINATE: 10 per page
+    paginator = Paginator(client_data, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'client_info.html', {
+        'page_obj': page_obj
+    })
