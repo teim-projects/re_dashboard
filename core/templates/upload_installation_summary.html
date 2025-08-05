@@ -56,25 +56,16 @@
 
         <form method="POST" enctype="multipart/form-data">
           {% csrf_token %}
-<!-- <div class="form-group mt-3">
-  <label class="form-label">Select Customer <span class="text-danger">*</span></label>
-  <select class="form-control" name="user_id" required>
-    <option value="">-- Select Customer --</option>
-    {% for user in customers %}
-      <option value="{{ user.id }}">{{ user.username }}</option>
-    {% endfor %}
-  </select>
-</div> -->
-<div class="form-group mt-3">
-  <label class="form-label">Energy Type <span class="text-danger">*</span></label>
-  <select class="form-control" name="energy_type" required>
-    <option value="">-- Select Energy Type --</option>
-    {% for energy in energy_types %}
-      <option value="{{ energy.id }}">{{ energy.name }}</option>
-    {% endfor %}
-  </select>
-</div>
 
+          <div class="form-group mt-3">
+            <label class="form-label">Energy Type <span class="text-danger">*</span></label>
+            <select class="form-control" name="energy_type" id="energyTypeSelect" required>
+              <option value="">-- Select Energy Type --</option>
+              {% for energy in energy_types %}
+                <option value="{{ energy.id }}">{{ energy.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
           <div class="form-group mt-3">
             <label class="form-label">Upload Excel File <span class="text-danger">*</span></label>
@@ -83,28 +74,40 @@
 
           <div class="action-buttons">
             <button type="submit" class="btn btn-success btn-custom">Upload File</button>
-<button type="button" onclick="downloadTemplate()" class="btn btn-primary btn-custom">
-  Get Template
-</button>
+            <button id="download-btn" type="button" onclick="downloadTemplate()" class="btn btn-primary btn-custom">
+              Get Template
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
 </div>
+
 <script>
   function downloadTemplate() {
-    const userId = document.querySelector('[name="user_id"]').value;
-    const energyTypeId = document.querySelector('[name="energy_type"]').value;
+    const energyTypeId = document.getElementById('energyTypeSelect').value;
 
-    if (!userId || !energyTypeId) {
-      alert("Please select both customer and energy type first.");
+    if (!energyTypeId) {
+      alert("Please select an energy type first.");
       return;
     }
 
-    const url = `/download-template/?user_id=${userId}&energy_type_id=${energyTypeId}`;
+    const url = `/download-template/?energy_type=${energyTypeId}`;
     window.location.href = url;
   }
-</script>
 
+  // Optional: Disable button unless energy type selected
+  document.addEventListener('DOMContentLoaded', function () {
+    const energyTypeSelect = document.getElementById('energyTypeSelect');
+    const downloadBtn = document.getElementById('download-btn');
+
+    function toggleDownloadButton() {
+      downloadBtn.disabled = !energyTypeSelect.value;
+    }
+
+    energyTypeSelect.addEventListener('change', toggleDownloadButton);
+    toggleDownloadButton();  // Run on page load
+  });
+</script>
 {% endblock %}

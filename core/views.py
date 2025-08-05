@@ -509,18 +509,20 @@ from django.utils.text import slugify
 from django.db import connection
 import pandas as pd
 import io
+from accounts.models import EnergyType
+from django.contrib.auth.decorators import login_required
 
 @login_required
 def download_template(request):
     energy_type_id = request.GET.get('energy_type')
 
     if not energy_type_id:
-        return HttpResponse("Energy Type is required.", status=400)
+        return HttpResponse("❌ Energy Type is required in query params.", status=400)
 
     try:
         energy_type = EnergyType.objects.get(id=energy_type_id)
     except EnergyType.DoesNotExist:
-        return HttpResponse("Invalid energy type.", status=400)
+        return HttpResponse("❌ Invalid Energy Type.", status=400)
 
     table_name = f"installation_summary_{slugify(energy_type.name)}"
 
@@ -529,14 +531,15 @@ def download_template(request):
             cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
             columns = [row[0] for row in cursor.fetchall()]
     except Exception as e:
-        return HttpResponse(f"Error reading table structure: {str(e)}", status=500)
+        return HttpResponse(f"❌ Table `{table_name}` not found or invalid: {str(e)}", status=500)
 
-    # Remove system columns
     exclude_columns = {'customer', 'energy_type'}
-    filtered_columns = [col for col in columns if col not in exclude_columns]
+    user_columns = [col for col in columns if col not in exclude_columns]
 
-    # Create empty DataFrame with just user-uploaded columns
-    df = pd.DataFrame(columns=filtered_columns)
+    if not user_columns:
+        return HttpResponse("❌ No user-uploaded columns found in this table.", status=500)
+
+    df = pd.DataFrame(columns=user_columns)
 
     buffer = io.BytesIO()
     df.to_excel(buffer, index=False)

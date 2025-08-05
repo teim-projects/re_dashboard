@@ -12,7 +12,7 @@ urlpatterns = [
   path('accounts/',include('accounts.urls')),
   path('upload-installation-summary/',upload_installation_summary, name='upload_installation_summary'),
   path('upload-installation-data/', upload_installation_data, name='upload_installation_data'),
-  path('download-template/',download_template, name='download_template'),
+    path('download-template/',download_template, name='download_template'),
 
 
 
