@@ -397,3 +397,78 @@ def add_provider_with_structure(request):
         'provider_table_map': provider_table_map,
         'users': staff_users,
     })
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.db import connection
+from accounts.models import Provider
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.db import connection
+from accounts.models import Provider
+from django.contrib import messages
+
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.db import connection
+from accounts.models import Provider
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import connection
+from .models import Provider  # or your actual Provider model
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import connection
+from .models import Provider  # ✅ Moved this to the top — keep it here
+
+def view_existing_providers(request):
+    if request.method == "POST":
+        table_to_delete = request.POST.get("delete_table_name")
+        if table_to_delete:
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(f"DROP TABLE IF EXISTS `{table_to_delete}`")
+                messages.success(request, f"Table {table_to_delete} deleted successfully.")
+            except Exception as e:
+                messages.error(request, f"❌ Error deleting table: {str(e)}")
+            return redirect("existing_providers")
+
+        provider_id = request.POST.get("delete_provider_id")
+        if provider_id:
+            try:
+                provider = Provider.objects.get(id=provider_id)
+                with connection.cursor() as cursor:
+                    cursor.execute("SHOW TABLES;")
+                    all_tables = [row[0] for row in cursor.fetchall()]
+                    provider_tables = [t for t in all_tables if provider.name.lower() in t.lower()]
+                    for table in provider_tables:
+                        cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
+                provider.delete()
+                messages.success(request, f"✅ Provider '{provider.name}' and all related tables deleted.")
+            except Provider.DoesNotExist:
+                messages.error(request, "❌ Provider not found.")
+            except Exception as e:
+                messages.error(request, f"❌ Error deleting provider: {str(e)}")
+            return redirect("existing_providers")
+
+    # ✅ GET request — display providers and their tables
+    providers = Provider.objects.all()
+
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW TABLES;")
+        all_tables = [row[0] for row in cursor.fetchall()]
+
+    provider_table_map = {}
+    for provider in providers:
+        matching_tables = [t for t in all_tables if provider.name.lower() in t.lower()]
+        provider_table_map[provider.name] = matching_tables
+
+    return render(request, "view_existing_providers.html", {
+        "providers": providers,
+        "provider_table_map": provider_table_map
+    })

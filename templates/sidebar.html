@@ -461,147 +461,162 @@ body.dark-mode .nav-link.active {
 </div>
 
 
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar" style="z-index: 1000; overflow: scroll;">
+  <button class="close-btn" onclick="closeSidebar()">×</button>
+  <center>
+    <div class="text-center mt-5 bg-white pt-1" style="border-radius: 10px; width:70%;">
+      <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" class="img-fluid" style="height: 70px; width: 100px;" />
+    </div>
+  </center>
 
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar" style="z-index: 1000; overflow: scroll;">
-    <button class="close-btn" onclick="closeSidebar()">×</button>
-    <center>
-      <div class="text-center mt-5 bg-white pt-1" style="border-radius: 10px; width:70%;">
-        <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" class="img-fluid" style="height: 70px; width: 100px;" />
+  <!-- ✅ Show Hello button only if NOT superuser -->
+  {% if not request.user.is_superuser %}
+  <div class="dashboard-option-header-mobile ml-4">
+    <div class="d-flex gap-3 flex-wrap">
+      <!-- Solar -->
+      <div class="energy-toggle">
+        <input type="radio" name="energy_type" id="energy_btn1" class="energy-input d-none"
+          {% if request.path == '/solar/' %}checked{% endif %}>
+        <label for="energy_btn1"
+               class="energy-label {% if request.path == '/solar/' %}active{% endif %}"
+               onclick="window.location.href='{% url 'solar_dashboard' %}'">
+          <i class="fas fa-sun"></i> Solar
+          <span class="check-icon"><i class="fas fa-check"></i></span>
+        </label>
       </div>
-    </center>
-         <!-- ✅ Show Hello button only if NOT superuser -->
-    {% if not request.user.is_superuser %}
-    <div class="dashboard-option-header-mobile ml-4">
-  <div class="d-flex gap-3 flex-wrap">
 
-    <!-- Solar -->
-    <div class="energy-toggle">
-      <input type="radio" name="energy_type" id="energy_btn1" class="energy-input d-none"
-        {% if request.path == '/solar/' %}checked{% endif %}>
-      <label for="energy_btn1"
-             class="energy-label {% if request.path == '/solar/' %}active{% endif %}"
-             onclick="window.location.href='{% url 'solar_dashboard' %}'">
-        <i class="fas fa-bolt"></i> Solar
-        <span class="check-icon"><i class="fas fa-check"></i></span>
-      </label>
+      <!-- Wind -->
+      <div class="energy-toggle">
+        <input type="radio" name="energy_type" id="energy_btn2" class="energy-input d-none"
+          {% if request.path == '/' %}checked{% endif %}>
+        <label for="energy_btn2"
+               class="energy-label {% if request.path == '/' %}active{% endif %}"
+               onclick="window.location.href='{% url 'customer_dashboard' %}'">
+          <i class="fas fa-wind"></i> Wind
+          <span class="check-icon"><i class="fas fa-check"></i></span>
+        </label>
+      </div>
     </div>
-
-    <!-- Wind -->
-    <div class="energy-toggle">
-      <input type="radio" name="energy_type" id="energy_btn2" class="energy-input d-none"
-        {% if request.path == '/' %}checked{% endif %}>
-      <label for="energy_btn2"
-             class="energy-label {% if request.path == '/' %}active{% endif %}"
-             onclick="window.location.href='{% url 'customer_dashboard' %}'">
-        <i class="fas fa-bolt"></i> Wind
-        <span class="check-icon"><i class="fas fa-check"></i></span>
-      </label>
-    </div>
-
   </div>
+  {% endif %}
 
+  <ul class="nav flex-column mt-4 pl-3">
+    {% if request.user.is_superuser %}
+    <li class="nav-item">
+      <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
+        <i class="fas fa-tachometer-alt"></i> Admin Area
+      </a>
+    </li>
 
-    </div>
+    <!-- Masters -->
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#mastersSubmenu" role="button" aria-expanded="false" aria-controls="mastersSubmenu">
+        <i class="fas fa-layer-group"></i>&nbsp; Masters <i class="fas fa-caret-down float-right"></i>
+      </a>
+      <div class="collapse ml-3" id="mastersSubmenu">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'add_energy_type' %}">
+              <i class="fas fa-bolt"></i> Energy Types
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'register_user' %}">
+              <i class="fas fa-user-plus"></i> Add New User
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'add_provider' %}">
+              <i class="fas fa-plug"></i> Add Provider
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'upload_installation_summary' %}">
+              <i class="fas fa-file-circle-plus"></i> Add Installation Summary
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Records -->
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#RecordsSubmenu" role="button" aria-expanded="false" aria-controls="RecordsSubmenu">
+        <i class="fas fa-layer-group"></i>&nbsp; Records <i class="fas fa-caret-down float-right"></i>
+      </a>
+      <div class="collapse ml-3" id="RecordsSubmenu">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'user_list' %}">
+              <i class="fas fa-users"></i>&nbsp; Manage Users
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'existing_providers' %}">
+              <i class="fas fa-database"></i> Manage Providers
+            </a>
+          </li>
+
+             <li class="nav-item">
+      <a class="nav-link" href="{% url 'manage_installation_data' %}">
+        <i class="fas fa-pen-to-square"></i>&nbsp;Installation Data
+      </a>
+    </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'client_info' %}">
+              <i class="fas fa-user-circle"></i>&nbsp; Client Info
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'upload_files' %}">
+        <i class="fas fa-upload"></i>&nbsp; Upload Data
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'upload_installation_data' %}">
+        <i class="fas fa-file-upload"></i> &nbsp; Installation Summary
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'modify_data' %}">
+        <i class="fas fa-pen-to-square"></i>&nbsp; Modify Data
+      </a>
+    </li>
+
+   
+
+    {% else %}
+    <li class="nav-item">
+      <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
+        <i class="fas fa-tachometer-alt"></i> Customer Area
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        <i class="fas fa-chart-line"></i>&nbsp; Interactive Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        <i class="fas fa-user"></i>&nbsp; Profile Information
+      </a>
+    </li>
     {% endif %}
-    <ul class="nav flex-column mt-4 pl-3">
-      {% if request.user.is_superuser %}
-      <li class="nav-item">
-        <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}" style="color: black !important;;">
-          <i class="fas fa-tachometer-alt"></i> Admin Area
-        </a>
-      </li>
-<li class="nav-item">
-  <a class="nav-link" data-toggle="collapse" href="#mastersSubmenu" role="button" aria-expanded="false" aria-controls="mastersSubmenu">
-    <i class="fas fa-layer-group"></i>&nbsp; Masters <i class="fas fa-caret-down float-right"></i>
-  </a>
-  <div class="collapse ml-3" id="mastersSubmenu">
-    <ul class="nav flex-column">
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'add_energy_type' %}">
-          <i class="fas fa-bolt"></i> Energy Types
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'add_provider' %}">
-          <i class="fas fa-plug-circle-plus"></i> Add Provider
-        </a>
-      </li>
-         <li class="nav-item">
-        <a class="nav-link" href="{% url 'upload_installation_summary' %}">
-          <i class="fas fa-plug-circle-plus"></i>  Add Installation Summary
-        </a>
-      </li>
-      
-      <!-- Add more items here -->
-    </ul>
-  </div>
-</li>
-            <li class="nav-item">
-        <a class="nav-link" href="{% url 'user_list' %}">
-          <i class="fas fa-users"></i>&nbsp; Manage Users
-        </a>
-      </li>
-            <li class="nav-item">
-        <a class="nav-link" href="{% url 'upload_files' %}">
-          <i class="fas fa-upload"></i>&nbsp; Upload Data
-        </a>
-      </li>
-         <li class="nav-item">
-  <a class="nav-link" href="{% url 'upload_installation_data' %}">
-<i class="fas fa-file-download"></i> &nbsp; Installation Summary
-  </a>
-</li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'modify_data' %}">
-          <i class="fas fa-edit"></i>&nbsp; Modify Data
-        </a>
-      </li>
-  <li class="nav-item">
-        <a class="nav-link" href="{% url 'client_info' %}">
-          <i class="fas fa-edit"></i>&nbsp; Client Info
-        </a>
-      </li>
 
-   <!-- <li class="nav-item">
-  <a class="nav-link" href="{% url 'add_energy_type' %}">
-    <i class="fas fa-bolt"></i>&nbsp; Energy Types
-  </a>
-</li> -->
+    <!-- Logout -->
+    <li class="nav-item text-center mt-2">
+      <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#logoutModal">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </li>
+  </ul>
+</div>
 
-
-   <!-- <li class="nav-item">
-  <a class="nav-link" href="{% url 'add_provider' %}">
-<i class="fas fa-plug-circle-plus"></i> &nbsp; Add Provider
-  </a>
-</li> -->
-
-
-      {% else %}
-
-      <li class="nav-item">
-        <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
-          <i class="fas fa-tachometer-alt"></i> Customer Area
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">
-          <i class="fas fa-upload"></i>&nbsp; Interactive Dashboard
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">
-          <i class="fas fa-edit"></i>&nbsp; Profile Information
-        </a>
-      </li>
-      {% endif %}
-      <li class="nav-item text-center mt-2">
-        <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#logoutModal">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-      </li>
-    </ul>
-  </div>
 
   <!-- Logout Modal -->
   <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel"

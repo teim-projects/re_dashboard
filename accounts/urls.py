@@ -15,4 +15,7 @@ urlpatterns = [
     
     # ✅ Provider Master (newly added)
     path('add-provider/', add_provider_with_structure, name='add_provider'),
+
+    path('existing-providers/',view_existing_providers, name='existing_providers'),
+
 ]

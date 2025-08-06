@@ -43,14 +43,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from django.utils.text import slugify
 from django.contrib.auth.models import User
-from accounts.models import Provider, EnergyType  # Adjust this import as needed
+from accounts.models import Provider, EnergyType
+import datetime
+
 @login_required
 def modify_data(request):
     users = User.objects.filter(is_superuser=False)
-    energy_types = EnergyType.objects.all()
-    providers = Provider.objects.all()
 
     # Fetch all actual tables from DB
     with connection.cursor() as cursor:
@@ -66,7 +65,6 @@ def modify_data(request):
             provider_slug = '_'.join(parts[1:-1])
             energy_type_slug = parts[-1]
 
-            # Recheck if valid provider + energy type
             if Provider.objects.filter(name__iexact=provider_slug.replace('_', ' ')).exists() and \
                EnergyType.objects.filter(name__iexact=energy_type_slug.replace('_', ' ')).exists():
                 expected_tables.append({
@@ -85,16 +83,27 @@ def modify_data(request):
             return redirect("modify_data")
 
         try:
+            # Convert 'YYYY-MM-DD' to 'DD-MM-YYYY'
+            start_date_obj = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_obj = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+
+            start_date_formatted = start_date_obj.strftime("%d-%m-%Y")
+            end_date_formatted = end_date_obj.strftime("%d-%m-%Y")
+
             with connection.cursor() as cursor:
                 delete_sql = f"""
                     DELETE FROM `{table_name}`
                     WHERE uploaded_by = (
                         SELECT username FROM auth_user WHERE id = %s
                     )
-                    AND date BETWEEN %s AND %s
+                    AND gen_date BETWEEN %s AND %s
                 """
-                cursor.execute(delete_sql, [user_id, start_date, end_date])
-            messages.success(request, "✅ Data deleted successfully.")
+                cursor.execute(delete_sql, [user_id, start_date_formatted, end_date_formatted])
+                if cursor.rowcount == 0:
+                    messages.warning(request, "⚠️ No records matched the criteria.")
+                else:
+                    messages.success(request, f"✅ {cursor.rowcount} record(s) deleted successfully.")
+
         except Exception as e:
             messages.error(request, f"❌ Error: {str(e)}")
         return redirect("modify_data")
@@ -300,8 +309,61 @@ def upload_installation_data(request):
     })
 
 
+from django.db import connection
+from django.utils.text import slugify
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from accounts.models import EnergyType, User  # Adjust imports to match your project
 
+@login_required
+@csrf_exempt
+def manage_installation_data(request):
+    customers = User.objects.filter(is_superuser=False)
+    energy_types = EnergyType.objects.all()
+    installation_entries = []
 
+    if request.method == 'POST' and 'delete_entry' in request.POST:
+        user_id = request.POST.get('user_id')
+        energy_type_id = request.POST.get('energy_type_id')
+
+        try:
+            user = User.objects.get(id=user_id)
+            energy_type = EnergyType.objects.get(id=energy_type_id)
+            table_name = f"installation_summary_{slugify(energy_type.name)}"
+
+            with connection.cursor() as cursor:
+                cursor.execute(f"DELETE FROM `{table_name}` WHERE customer = %s", [user.username])
+            messages.success(request, f"✅ Installation data for '{user.username}' deleted.")
+        except Exception as e:
+            messages.error(request, f"⚠️ Failed to delete installation: {str(e)}")
+
+        return redirect('manage_installation_data')
+
+    # List all installations grouped by customer and energy type
+    for e_type in energy_types:
+        table_name = f"installation_summary_{slugify(e_type.name)}"
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"SELECT DISTINCT customer FROM `{table_name}`"
+                )
+                rows = cursor.fetchall()
+                for row in rows:
+                    customer_username = row[0]
+                    user = User.objects.filter(username=customer_username).first()
+                    if user:
+                        installation_entries.append({
+                            'user': user,
+                            'energy_type': e_type,
+                        })
+        except Exception:
+            continue  # skip tables that don't exist or are invalid
+
+    return render(request, 'manage_installation_data.html', {
+        'installation_entries': installation_entries,
+    })
 
  
 
@@ -606,16 +668,23 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
  
 
+from django.utils.dateparse import parse_date
+
 @login_required
 def client_info(request):
     client_data = []
 
-    # Get all tables
+    client_filter = request.GET.get('client', '').lower()
+    oem_filter = request.GET.get('oem', '').lower()
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
     with connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         all_tables = [row[0] for row in cursor.fetchall()]
 
-    # Parse relevant dynamic tables
+    oem_names_set = set()
+
     for table in all_tables:
         parts = table.split('_')
         if len(parts) >= 3:
@@ -625,13 +694,13 @@ def client_info(request):
 
             provider_name = provider_slug.replace('_', ' ').title()
             energy_type_name = energy_type_slug.replace('_', ' ').title()
+            oem_names_set.add(provider_name)
 
             provider_exists = Provider.objects.filter(name__iexact=provider_name).exists()
             energy_exists = EnergyType.objects.filter(name__iexact=energy_type_name).exists()
 
             if provider_exists and energy_exists:
                 try:
-                    # Check for 'uploaded_by' column
                     with connection.cursor() as cursor:
                         cursor.execute(f"SHOW COLUMNS FROM `{table}`")
                         available_cols = [row[0] for row in cursor.fetchall()]
@@ -646,33 +715,44 @@ def client_info(request):
                             if result:
                                 row_uploaded_by = result[0]
 
-                    # Get last modified time
                     try:
                         metadata = UploadMetadata.objects.get(table_name=table)
-                        last_modified = metadata.last_modified.strftime('%Y-%m-%d %H:%M:%S')
+                        last_modified = metadata.last_modified.strftime('%Y-%m-%d')
                     except UploadMetadata.DoesNotExist:
-                        last_modified = "N/A"
+                        last_modified = None
 
-                    # Prepare client name and data
                     client_name = f"{row_uploaded_by}_{energy_type_name}" if row_uploaded_by else "N/A"
+
+                    # Apply filters
+                    if client_filter and client_filter not in client_name.lower():
+                        continue
+                    if oem_filter and oem_filter not in provider_name.lower():
+                        continue
+                    if from_date and last_modified and last_modified < from_date:
+                        continue
+                    if to_date and last_modified and last_modified > to_date:
+                        continue
 
                     client_data.append({
                         "client": client_name,
                         "oem": provider_name,
-                        "generation": "N/A",  # Placeholder
-                        "breakdown": "N/A",   # Placeholder
-                        "last_modified": last_modified,
+                        "generation": "N/A",
+                        "breakdown": "N/A",
+                        "last_modified": last_modified or "N/A",
                     })
 
                 except DatabaseError as e:
                     print(f"⚠️ Skipping table `{table}` due to error: {e}")
                     continue
 
-    # PAGINATE: 10 per page
+    # Sort data (optional)
+    client_data.sort(key=lambda x: x['client'])
+
     paginator = Paginator(client_data, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'client_info.html', {
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'unique_oems': sorted(oem_names_set)
     })
