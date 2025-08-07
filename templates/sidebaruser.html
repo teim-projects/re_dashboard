@@ -386,62 +386,6 @@ body.dark-mode .nav-link.active {
   color: #ffe066 !important;
   font-weight: bold;
 }/* Fixed sidebar width on all screens */
-#mySidebar {
-  width: 300px !important;
-}
-
-/* Ensure all w3-bar-item have the same fixed width and wrap text */
-.w3-bar-item {
-  width: 100%;
-  max-width: 250px;
-  word-wrap: break-word;
-  white-space: normal;
-  box-sizing: border-box;
- }
-
-/* Sidebar button style */
-.sidebar2 {
-  background-color: #343434;
-  padding: 10px;
-  border-radius: 10px;
-margin: 0 10px;
-  color: white;
-  text-decoration: none;
-   display: inline-block;
-  width: 100%;
-  text-align: center;
-  box-sizing: border-box;
-  box-shadow: 0px 0px 10px black;
-}
-
-/* Optional hover effect */
-.w3-bar-item:hover {
-  text-decoration: none;
-}
-   /* Make sidebar hidden by default on small screens */
-    @media (max-width: 991px) {
-      #mySidebar {
-        display: none;
-      }
-
-      #myOverlay {
-        display: none;
-      }
-
-      #openNav {
-        display: block;
-      }
-    }
-
-    @media (min-width: 992px) {
-      #mySidebar {
-        display: block !important;
-      }
-
-      #openNav {
-        display: none;
-      }
-    }
   </style>
 </head>
 
@@ -491,27 +435,14 @@ margin: 0 10px;
   </div>
 
   <h5 class="mb-0 me-3 text-dark">Hello, {{ request.user }}</h5>
-  <button class="w3-button w3-xlarge w3-hide-large" id="openNav" onclick="w3_open()">☰</button>
-
+ 
   <div class="dark-mode-toggle" data-aos="zoom-in">
     <button id="themeToggleBtn" class="btn btn-light theme-btn" title="Toggle Dark Mode">
       <i id="themeIcon" class="fas fa-moon"></i>
     </button>
   </div>
 
-  {% else %}
-  <!-- Guest View -->
-  <div class="container-fluid py-2 w-100">
-    <div class="d-flex justify-content-between align-items-center px-3">
-      <img src="{% static 'images/TeimLogo.png' %}" alt="TEIM Logo" height="50">
-      <img src="{% static 'images/crono.png' %}" alt="Intelimek Logo" height="50">
-
-      <div class="toggle-switch" data-aos="zoom-in">
-        <input type="checkbox" id="themeToggle">
-        <label for="themeToggle" title="Toggle Dark Mode"></label>
-      </div>
-    </div>
-  </div>
+ 
   {% endif %}
 
 </div>
@@ -527,8 +458,7 @@ margin: 0 10px;
   </center>
 
   <!-- ✅ Show Hello button only if NOT superuser -->
-  {% if not request.user.is_superuser %}
-  <div class="dashboard-option-header-mobile ml-4">
+   <div class="dashboard-option-header-mobile ml-4">
     <div class="d-flex gap-3 flex-wrap">
       <!-- Solar -->
       <div class="energy-toggle">
@@ -555,98 +485,8 @@ margin: 0 10px;
       </div>
     </div>
   </div>
-  {% endif %}
 
   <ul class="nav flex-column mt-4 pl-3">
-    {% if request.user.is_superuser %}
-    <li class="nav-item">
-      <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
-        <i class="fas fa-tachometer-alt"></i> Admin Area
-      </a>
-    </li>
-
-    <!-- Masters -->
-    <li class="nav-item">
-      <a class="nav-link" data-toggle="collapse" href="#mastersSubmenu" role="button" aria-expanded="false" aria-controls="mastersSubmenu">
-        <i class="fas fa-layer-group"></i>&nbsp; Masters <i class="fas fa-caret-down float-right"></i>
-      </a>
-      <div class="collapse ml-3" id="mastersSubmenu">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'add_energy_type' %}">
-              <i class="fas fa-bolt"></i> Energy Types
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'register_user' %}">
-              <i class="fas fa-user-plus"></i> Add New User
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'add_provider' %}">
-              <i class="fas fa-plug"></i> Add Provider
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'upload_installation_summary' %}">
-              <i class="fas fa-file-circle-plus"></i> Add Installation Summary
-            </a>
-          </li>
-        </ul>
-      </div>
-    </li>
-
-    <!-- Records -->
-    <li class="nav-item">
-      <a class="nav-link" data-toggle="collapse" href="#RecordsSubmenu" role="button" aria-expanded="false" aria-controls="RecordsSubmenu">
-        <i class="fas fa-layer-group"></i>&nbsp; Records <i class="fas fa-caret-down float-right"></i>
-      </a>
-      <div class="collapse ml-3" id="RecordsSubmenu">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'user_list' %}">
-              <i class="fas fa-users"></i>&nbsp; Manage Users
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'existing_providers' %}">
-              <i class="fas fa-database"></i> Manage Providers
-            </a>
-          </li>
-
-             <li class="nav-item">
-      <a class="nav-link" href="{% url 'manage_installation_data' %}">
-        <i class="fas fa-pen-to-square"></i>&nbsp;Installation Data
-      </a>
-    </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'client_info' %}">
-              <i class="fas fa-user-circle"></i>&nbsp; Client Info
-            </a>
-          </li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'upload_files' %}">
-        <i class="fas fa-upload"></i>&nbsp; Upload Data
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'upload_installation_data' %}">
-        <i class="fas fa-file-upload"></i> &nbsp; Installation Summary
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'modify_data' %}">
-        <i class="fas fa-pen-to-square"></i>&nbsp; Modify Data
-      </a>
-    </li>
-
-   
-
-    {% else %}
     <li class="nav-item">
       <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
         <i class="fas fa-tachometer-alt"></i> Customer Area
@@ -662,7 +502,7 @@ margin: 0 10px;
         <i class="fas fa-user"></i>&nbsp; Profile Information
       </a>
     </li>
-    {% endif %}
+     
 
     <!-- Logout -->
     <li class="nav-item text-center mt-2">
