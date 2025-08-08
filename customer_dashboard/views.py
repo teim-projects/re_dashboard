@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-def dashboard(request):
+def wind_dashboard(request):
     return render(request, 'customer_home.html')  # Wind Dashboard
 
 def solar_dashboard(request):

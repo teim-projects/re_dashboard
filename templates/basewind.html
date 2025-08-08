@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Add inside <head> of basewind.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="icon" type="image/png" href="{% static 'images/TeimLogo.png' %}">
@@ -90,6 +92,9 @@
 
     .fixed-panel .nav-link.active {
       background-color: #2196f3;
+      color: white !important;
+        box-shadow: 0 6px 10px rgba(255, 254, 254, 0.5);
+
     }
 
     .content-wrapper {
@@ -103,7 +108,7 @@
 
   {% block style_css %}{% endblock %}
 </head>
-<body>
+<body style="overflow-x: hidden;">
  {% block sidebar %}
     {% include 'sidebaruser.html' %} 
   {% endblock sidebar %}
@@ -117,16 +122,16 @@
   </button>
 
   <!-- Main layout -->
-  <div class="container-fluid mt-5">
+  <div class="container-fluid ">
     <div class="row">
 
       <!-- Sidebar -->
       <div class="col-md-3 p-0">
         <div class="fixed-panel" id="dashboardPanel" style="min-height: 100vh;">
           {% block fixedcontent %}
-            <h4 class="text-white mb-4 text-center mt-5 shadow mb-3"><i class="fa-solid fa-desktop"></i> Dashboard</h4>
-            <nav class="nav flex-column mt-3"  style="align-items: center;" >
-              <a class="nav-link navcontent {% if request.path == '/homepage/' or request.path == '/' %}active{% endif %}" href="/homepage/">HOMEPAGE</a>
+            <h4 class="text-white mb-4 text-center mt-5 shadow mb-3" style="padding-top: 40px !important;"><i class="fa-solid fa-desktop"></i> Dashboard</h4>
+            <nav class="nav flex-column"  style="align-items: center; " >
+              <a class="nav-link navcontent {% if request.path == '/dashboard/' or request.path == '/' %}active{% endif %}" href="{% url 'dashboard' %}">HOMEPAGE</a>
               <a class="nav-link navcontent {% if request.path == '/installation-summary-1/' %}active{% endif %}" href="#">INSTALLATION SUMMARY 1</a>
               <a class="nav-link navcontent {% if request.path == '/installation-summary-2/' %}active{% endif %}" href="#">INSTALLATION SUMMARY 2</a>
               <a class="nav-link navcontent {% if request.path == '/generation-kwh/' %}active{% endif %}" href="#">GENERATION KWH</a>
@@ -138,7 +143,7 @@
       </div>
 
       <!-- Main content -->
-      <div class="col-md-9 content-wrapper">
+      <div class="col-md-9 content-wrapper" style="padding: 0px;">
         {% block content %}{% endblock %}
       </div>
 
