@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'core', # Core is for Admin 
     'accounts',
     'customer_dashboard',
+    'solardashboard',
     
 ]
 

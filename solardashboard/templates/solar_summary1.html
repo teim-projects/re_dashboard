@@ -1,0 +1,109 @@
+{% extends "basewind.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+
+    <!-- Capacity by State -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          Capacity (MW) by State
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered text-center">
+            <thead>
+              <tr><th>State</th><th>Capacity (MW)</th></tr>
+            </thead>
+            <tbody>
+              {% for row in data.capacity_by_state %}
+              <tr>
+                <td>{{ row.0 }}</td>
+                <td>{{ row.1 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- State Wise Land Type -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          State Wise Land Type
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered text-center">
+            <thead>
+              <tr><th>State</th><th>Land</th><th>Count</th></tr>
+            </thead>
+            <tbody>
+             {% for row in data.land_type_by_state %}
+<tr>
+  <td>{{ row.0 }}</td>
+  <td>{{ row.1 }}</td>
+  <td>{{ row.2 }}</td>
+</tr>
+{% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- WTG Generation -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+          Estimated Generation WTG Wise
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered text-center">
+            <thead>
+              <tr><th>WTG Location</th><th>Avg Generation</th></tr>
+            </thead>
+            <tbody>
+              {% for row in data.wtg_generation %}
+              <tr>
+                <td>{{ row.0 }}</td>
+                <td>{{ row.1 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Power Sale -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white">
+          State Wise Power Sale
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered text-center">
+            <thead>
+              <tr><th>Power Sale Detail</th><th>State</th></tr>
+            </thead>
+            <tbody>
+              {% for row in data.power_sale %}
+              <tr>
+                <td>{{ row.0 }}</td>
+                <td>{{ row.1 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
