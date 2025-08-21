@@ -53,3 +53,46 @@ def solar_summary1(request):
         data["power_sale"] = cursor.fetchall()
 
     return render(request, "solar_summary1.html", {"data": data})
+
+
+
+import json
+from django.shortcuts import render
+from django.db import connection
+@login_required
+def installation_summary2(request):
+    table_name = "installation_summary_wind"   # 👈 Change if needed
+
+    data = {}
+
+    with connection.cursor() as cursor:
+        # Power Sale summary
+        cursor.execute(f"""
+            SELECT power_sale_details, COUNT(*) AS cnt
+            FROM `{table_name}`
+            GROUP BY power_sale_details
+        """)
+        power_sale_data = cursor.fetchall()
+
+        # Land summary
+        cursor.execute(f"""
+            SELECT land, COUNT(*) AS cnt
+            FROM `{table_name}`
+            GROUP BY land
+        """)
+        land_data = cursor.fetchall()
+
+    # Prepare for Chart.js
+    power_sale_labels = [row[0] for row in power_sale_data]
+    power_sale_values = [row[1] for row in power_sale_data]
+
+    land_labels = [row[0] for row in land_data]
+    land_values = [row[1] for row in land_data]
+
+    context = {
+        "power_sale_labels": json.dumps(power_sale_labels),
+        "power_sale_values": json.dumps(power_sale_values),
+        "land_labels": json.dumps(land_labels),
+        "land_values": json.dumps(land_values),
+    }
+    return render(request, "installation_summary2.html", context)
