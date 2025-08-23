@@ -407,22 +407,23 @@ body.dark-mode .nav-link.active {
 <div class="dashboard-option-header">
   <div class="d-flex gap-3 flex-wrap">
 
-    {% for energy in request.user.userprofile.energy_types.all %}
-      <div class="energy-toggle">
-        <input type="radio" 
-               name="energy_type" 
-               id="energy_btn{{ energy.id }}" 
-               class="energy-input d-none"
-               {% if request.path == '/'|add:energy.name|lower|add:'/' %}checked{% endif %}>
-        
-        <label for="energy_btn{{ energy.id }}"
-               class="energy-label {% if request.path == '/'|add:energy.name|lower|add:'/' %}active{% endif %}"
-               onclick="window.location.href='{% url energy.name|lower|add:'_dashboard' %}'">
-          <i class="fas fa-bolt"></i> {{ energy.name }}
-          <span class="check-icon"><i class="fas fa-check"></i></span>
-        </label>
-      </div>
-    {% endfor %}
+{% for energy in request.user.userprofile.energy_types.all %}
+  <div class="energy-toggle">
+    <input type="radio" 
+           name="energy_type" 
+           id="energy_btn{{ energy.id }}" 
+           class="energy-input d-none"
+           {% if energy.name|lower in request.resolver_match.url_name %}checked{% endif %}>
+    
+    <label for="energy_btn{{ energy.id }}"
+           class="energy-label {% if energy.name|lower in request.resolver_match.url_name %}active{% endif %}"
+           onclick="window.location.href='{% url energy.name|lower|add:'_dashboard' %}'">
+      <i class="fas fa-bolt"></i> {{ energy.name }}
+    </label>
+  </div>
+{% endfor %}
+
+
 
   </div>
 </div>
@@ -484,7 +485,7 @@ body.dark-mode .nav-link.active {
 
   <ul class="nav flex-column mt-4 pl-3">
     <li class="nav-item">
-      <a class="nav-link bg-white text-dark text-center" href="{% url 'dashboard' %}">
+      <a class="nav-link bg-white text-dark text-center" href="{% url 'wind_dashboard' %}">
         <i class="fas fa-tachometer-alt"></i> Customer Area
       </a>
     </li>

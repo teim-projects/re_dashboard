@@ -12,7 +12,7 @@ def dashboard(request):
     if user.is_superuser:
         return render(request, 'home.html')  # Admin dashboard
     else:
-        return render(request, 'customer_home.html')  # Regular user dashboard
+        return render(request, 'wind_dashboard.html')  # Regular user dashboard
     
 
 

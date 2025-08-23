@@ -7,7 +7,7 @@ urlpatterns = [
     path('', index_page, name="index"),
 
     # Dashboard routing
-    path('dashboard/', dashboard, name='dashboard'),
+    path('wind-dashboard/', dashboard, name='wind_dashboard'),
 
     # Upload and Modify
     path('upload-files/', upload_files, name='upload_files'),

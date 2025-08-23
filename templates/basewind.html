@@ -145,11 +145,11 @@
               class="fa-solid fa-desktop"></i> Dashboard</h4>
           <nav class="nav flex-column" style="align-items: center;">
             <a class="nav-link navcontent {% if request.path == '/dashboard/' or request.path == '/' %}active{% endif %}"
-              href="{% url 'dashboard' %}">HOMEPAGE</a>
+              href="{% url 'wind_dashboard' %}">HOMEPAGE</a>
             <a class="nav-link navcontent {% if request.path == '/installation-summary-1/' %}active{% endif %}"
-              href="{% url 'solar_summary1' %}">INSTALLATION SUMMARY 1</a>
+              href="{% url 'wind_summary1' %}">INSTALLATION SUMMARY 1</a>
             <a class="nav-link navcontent {% if request.path == '/installation-summary-2/' %}active{% endif %}"
-              href="{% url 'installation_summary2' %}">INSTALLATION SUMMARY 2</a>
+              href="{% url 'wind_installation_summary2' %}">INSTALLATION SUMMARY 2</a>
             <a class="nav-link navcontent {% if request.path == '/generation-kwh/' %}active{% endif %}"
               href="#">GENERATION KWH</a>
             <a class="nav-link navcontent {% if request.path == '/generation-hours/' %}active{% endif %}"

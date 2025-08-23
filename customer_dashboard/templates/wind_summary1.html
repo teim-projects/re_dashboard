@@ -1,4 +1,4 @@
-{% extends "basesolar.html" %}
+{% extends "basewind.html" %}
 {% load static %}
 
 {% block style_css %}
@@ -66,7 +66,7 @@
     <!-- Capacity by State -->
     <div class="col-12 col-md-6">
       <div class="card">
-        <div class="form-heading text-center">Capacity (MW) by State</div>
+        <div class="form-heading text-center">Capacity (MW) by State wind</div>
         <div class="card-body">
           <div class="table-responsive">
             <table id="capacityTable" class="table table-bordered text-center mb-0">
@@ -77,16 +77,12 @@
                 </tr>
               </thead>
               <tbody>
-                {% if data.capacity_by_state %}
-                  {% for row in data.capacity_by_state %}
-                  <tr>
-                    <td>{{ row.0 }}</td>
-                    <td>{{ row.1 }}</td>
-                  </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr><td colspan="2">Empty Table</td></tr>
-                {% endif %}
+                {% for row in data.capacity_by_state %}
+                <tr>
+                  <td>{{ row.0 }}</td>
+                  <td>{{ row.1 }}</td>
+                </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -109,17 +105,13 @@
                 </tr>
               </thead>
               <tbody>
-                {% if data.land_type_by_state %}
-                  {% for row in data.land_type_by_state %}
-                  <tr>
-                    <td>{{ row.0 }}</td>
-                    <td>{{ row.1 }}</td>
-                    <td>{{ row.2 }}</td>
-                  </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr><td colspan="3">Empty Table</td></tr>
-                {% endif %}
+                {% for row in data.land_type_by_state %}
+                <tr>
+                  <td>{{ row.0 }}</td>
+                  <td>{{ row.1 }}</td>
+                  <td>{{ row.2 }}</td>
+                </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -141,16 +133,12 @@
                 </tr>
               </thead>
               <tbody>
-                {% if data.wtg_generation %}
-                  {% for row in data.wtg_generation %}
-                  <tr>
-                    <td>{{ row.0 }}</td>
-                    <td>{{ row.1 }}</td>
-                  </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr><td colspan="2">Empty Table</td></tr>
-                {% endif %}
+                {% for row in data.wtg_generation %}
+                <tr>
+                  <td>{{ row.0 }}</td>
+                  <td>{{ row.1 }}</td>
+                </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -172,16 +160,12 @@
                 </tr>
               </thead>
               <tbody>
-                {% if data.power_sale %}
-                  {% for row in data.power_sale %}
-                  <tr>
-                    <td>{{ row.0 }}</td>
-                    <td>{{ row.1 }}</td>
-                  </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr><td colspan="2">Empty Table</td></tr>
-                {% endif %}
+                {% for row in data.power_sale %}
+                <tr>
+                  <td>{{ row.0 }}</td>
+                  <td>{{ row.1 }}</td>
+                </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -203,15 +187,6 @@ $(document).ready(function() {
     "info": true,
     "pagingType": "simple"
   });
-
-  {% if not table_exists %}
-  Swal.fire({
-    icon: 'warning',
-    title: 'Table Not Available',
-    text: 'You don’t have this table ({{ table_name }}) available. Please create and upload data.',
-    confirmButtonText: 'OK'
-  });
-  {% endif %}
 });
 </script>
 
@@ -219,9 +194,9 @@ $(document).ready(function() {
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="sp" style="position: absolute; bottom: 0px; width: 100%;">
 
-<div class="sp" style="position: absolute; bottom: 0px; width: 100%;"></div>
-{% include 'fotter.html' %}
+</div>
+  {% include 'fotter.html' %}
 
 {% endblock %}
