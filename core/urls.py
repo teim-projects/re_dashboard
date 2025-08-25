@@ -1,12 +1,12 @@
 from django.urls import path
 from .views import *
 from django.urls import include
-
 urlpatterns = [
     # Default index
     path('', index_page, name="index"),
 
     # Dashboard routing
+    path('dashboard/', dashboard, name='dashboard'),          # 👈 add this
     path('wind-dashboard/', dashboard, name='wind_dashboard'),
 
     # Upload and Modify
@@ -29,6 +29,4 @@ urlpatterns = [
     # Include account app routes
     path('accounts/', include('accounts.urls')),
     path('manage-installation/', manage_installation_data, name='manage_installation_data'),
-
- 
 ]

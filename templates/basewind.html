@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Add inside <head> of basewind.html -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="icon" type="image/png" href="{% static 'images/TeimLogo.png' %}">
@@ -108,8 +110,10 @@
 
     }
 
+
     .content-wrapper {
-      padding: 40px 30px;
+       height: 100vh;
+      overflow-x: auto;
     }
 
  
@@ -151,7 +155,7 @@
             <a class="nav-link navcontent {% if request.path == '/installation-summary-2/' %}active{% endif %}"
               href="{% url 'wind_installation_summary2' %}">INSTALLATION SUMMARY 2</a>
             <a class="nav-link navcontent {% if request.path == '/generation-kwh/' %}active{% endif %}"
-              href="#">GENERATION KWH</a>
+              href="{% url 'wind_generation_kwh' %}">GENERATION KWH</a>
             <a class="nav-link navcontent {% if request.path == '/generation-hours/' %}active{% endif %}"
               href="#">GENERATION HOURS</a>
             <a class="nav-link navcontent {% if request.path == '/avg-generation/' %}active{% endif %}" href="#">AVERAGE

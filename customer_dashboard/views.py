@@ -13,7 +13,7 @@ from django.db.utils import ProgrammingError
 
 @login_required
 def wind_summary1(request):
-    table_name = "installation_summary_lwind"
+    table_name = "installation_summary_wind"
     data = {
         "capacity_by_state": [],
         "land_type_by_state": [],
@@ -128,3 +128,44 @@ def wind_installation_summary2(request):
         "wtg_locations": wtg_locations,
         "oem_breakup": oem_breakup
     })
+import json
+from django.shortcuts import render
+from django.db import connection
+from django.contrib.auth.decorators import login_required
+
+import json
+from django.shortcuts import render
+from django.db import connection
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def wind_generation_kwh(request):
+    table_name = "ritesh_suzlon_wind"   # 👈 change if your DB table has another name
+
+    chart_data = []
+    table_data = []
+    total_generation = 0
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+        SELECT wtg, SUM(generation) as total_gen
+        FROM {table_name}
+        GROUP BY wtg
+        ORDER BY total_gen DESC
+    """)
+    rows = cursor.fetchall()
+
+    for row in rows:
+        wtg_no = row[0]
+        generation = int(row[1]) if row[1] else 0
+        total_generation += generation
+        chart_data.append({"wtg": wtg_no, "generation": generation})
+        table_data.append({"wtg_no": wtg_no, "generation": generation})
+
+
+    context = {
+        "chart_data": json.dumps(chart_data),
+        "table_data": table_data,
+        "total_generation": total_generation,
+    }
+    return render(request, "wind_generation_kwh.html", context)
